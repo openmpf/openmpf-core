@@ -34,6 +34,7 @@ import org.junit.runners.MethodSorters;
 import org.mitre.mpf.interop.*;
 import org.mitre.mpf.wfm.enums.MarkupStatus;
 import org.mitre.mpf.wfm.event.JobProgress;
+import org.mitre.mpf.wfm.exceptions.InvalidPipelineObjectWfmProcessingException;
 import org.mitre.mpf.wfm.service.MpfService;
 import org.mitre.mpf.wfm.util.JsonUtils;
 import org.slf4j.Logger;
@@ -142,14 +143,14 @@ public class TestSystemNightly extends TestSystemWithDefaultConfig {
                 "/samples/motion/STRUCK_Test_720p.mp4");
     }
 
-    @Test(timeout = 4*MINUTES)
+    @Test(timeout = 4*MINUTES, expected = InvalidPipelineObjectWfmProcessingException.class)
     public void testBadPipeline() throws Exception {
         testCtr++;
         log.info("Beginning test #{} testBadPipeline()", testCtr);
         List<JsonMediaInputObject> media = toMediaObjectList(ioUtils.findFile("/samples/face/meds-aa-S001-01.jpg"));
-        long jobId = runPipelineOnMedia("X", media, Collections.emptyMap(), propertiesUtil.isOutputObjectsEnabled(),
-                propertiesUtil.getJmsPriority());
-        log.info("Finished test testBadPipeline()");
+            long jobId = runPipelineOnMedia("X", media, Collections.emptyMap(), propertiesUtil.isOutputObjectsEnabled(),
+                    propertiesUtil.getJmsPriority());
+        log.error("Finished test testBadPipeline()"); // exception should have been thrown
     }
 
     @Test(timeout = 8*MINUTES)
