@@ -148,8 +148,8 @@ public class TestSystemNightly extends TestSystemWithDefaultConfig {
         testCtr++;
         log.info("Beginning test #{} testBadPipeline()", testCtr);
         List<JsonMediaInputObject> media = toMediaObjectList(ioUtils.findFile("/samples/face/meds-aa-S001-01.jpg"));
-            long jobId = runPipelineOnMedia("X", media, Collections.emptyMap(), propertiesUtil.isOutputObjectsEnabled(),
-                    propertiesUtil.getJmsPriority());
+        long jobId = runPipelineOnMedia("X", media, Collections.emptyMap(), propertiesUtil.isOutputObjectsEnabled(),
+                propertiesUtil.getJmsPriority());
         log.error("Finished test testBadPipeline()"); // exception should have been thrown
     }
 
