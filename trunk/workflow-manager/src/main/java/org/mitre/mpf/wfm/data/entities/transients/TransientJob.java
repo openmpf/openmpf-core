@@ -77,13 +77,13 @@ public class TransientJob {
 	private String callbackMethod;
 	public String getCallbackMethod() { return callbackMethod; }
 
-	public TransientJob(@JsonProperty("id") long id,
-						@JsonProperty("externalId") String externalId,
-						@JsonProperty("pipeline") TransientPipeline pipeline,
-						@JsonProperty("currentStage") int currentStage,
-						@JsonProperty("priority") int priority,
-						@JsonProperty("outputEnabled") boolean outputEnabled,
-						@JsonProperty("cancelled") boolean cancelled) {
+	public TransientJob(long id,
+						String externalId,
+						TransientPipeline pipeline,
+						int currentStage,
+						int priority,
+						boolean outputEnabled,
+						boolean cancelled) {
 		this.id = id;
 		this.externalId = externalId;
 		this.pipeline = pipeline;
