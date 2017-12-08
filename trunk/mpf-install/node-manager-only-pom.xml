@@ -39,6 +39,11 @@
     <packaging>pom</packaging>
     <name>MPF Install (Node Manager Only)</name>
 
+    <!-- poms in the following directories -->
+    <modules>
+        <module>../node-manager</module>
+    </modules>
+
     <!-- our jar modules and their dependencies: the one found first wins even over a newer version -->
     <dependencies>
         <dependency>
