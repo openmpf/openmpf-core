@@ -34,6 +34,7 @@
     <beans>
         <bean id="jedisConnFactory"
               class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory"
+              p:hostName="${REDIS_HOST:localhost}"
               p:usePool="true"
               p:timeout="60000"/>
 
