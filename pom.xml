@@ -111,6 +111,7 @@
         <javax.inject.version>1</javax.inject.version>
         <commons.dbcp.version>1.4</commons.dbcp.version>
         <javax.jms.version>1.1</javax.jms.version>
+        <javax.annotation-api>1.3.2</javax.annotation-api>
         <xbean.spring.version>4.3</xbean.spring.version>
         <commons.lang3.version>3.4</commons.lang3.version>
         <jaxws.rt.version>2.2.10</jaxws.rt.version>
