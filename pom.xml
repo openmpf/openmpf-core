@@ -121,7 +121,7 @@
         <apache.httpclient.version>4.5.2</apache.httpclient.version>
         <apache.httpasyncclient.version>4.1.3</apache.httpasyncclient.version>
         <stax2.api.version>4.0.0</stax2.api.version>
-        <mockito.core.version>1.10.19</mockito.core.version>
+        <mockito.core.version>2.23</mockito.core.version>
         <commons.io.version>2.6</commons.io.version>
         <xstream.version>1.4.8</xstream.version>
         <commons.beanutils.version>1.9.3</commons.beanutils.version>
