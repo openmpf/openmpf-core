@@ -53,8 +53,6 @@ import java.util.Collections;
 import java.util.Optional;
 
 import static org.junit.Assert.*;
-import static org.mitre.mpf.test.TestUtil.anyNonNull;
-import static org.mitre.mpf.test.TestUtil.whereArg;
 import static org.mitre.mpf.wfm.service.component.TestDescriptorConstants.*;
 import static org.mockito.Mockito.*;
 
@@ -196,7 +194,7 @@ public class TestAddComponentService {
         when(_mockNodeManager.getServiceModels())
                 .thenReturn(Collections.emptyMap());
 
-        when(_mockNodeManager.addService(whereArg(s -> s.getName().equals(COMPONENT_NAME)
+        when(_mockNodeManager.addService(argThat(s -> s.getName().equals(COMPONENT_NAME)
                     && s.getArgs().contains("/path/to/batch/lib.so"))))
                 .thenReturn(true);
 
@@ -209,7 +207,7 @@ public class TestAddComponentService {
                 .replacePackageState(_testPackageName, ComponentState.REGISTERING);
 
         verify(_mockStateService, times(2))
-                .update(whereArg(rcm -> rcm.getServiceName().contains(COMPONENT_NAME)
+                .update(argThat(rcm -> rcm.getServiceName().contains(COMPONENT_NAME)
                         && rcm.getJsonDescriptorPath().equals(DESCRIPTOR_PATH)
                         && rcm.getComponentName().equals(COMPONENT_NAME)
                         && rcm.getActions().size() == 1
@@ -223,21 +221,21 @@ public class TestAddComponentService {
         verifyDescriptorAlgoSaved(descriptor);
 
         verify(_mockPipelineService)
-                .saveAction(whereArg(ad -> ad.getName().contains(expectedAlgoName)
+                .saveAction(argThat(ad -> ad.getName().contains(expectedAlgoName)
                         && ad.getAlgorithmRef().equals(expectedAlgoName)
                         && ad.getProperties().isEmpty() ));
 
         verify(_mockPipelineService)
-                .saveTask(whereArg(td -> td.getName().contains(expectedAlgoName)));
+                .saveTask(argThat(td -> td.getName().contains(expectedAlgoName)));
 
         verify(_mockDeploymentService)
                 .deployComponent(_testPackageName);
 
         verify(_mockNodeManager)
-                .addService(whereArg(s -> s.getName().equals(COMPONENT_NAME)));
+                .addService(argThat(s -> s.getName().equals(COMPONENT_NAME)));
 
         verify(_mockStreamingServiceManager)
-                .addService(whereArg(
+                .addService(argThat(
                         s -> s.getServiceName().equals(COMPONENT_NAME)
                                 && s.getAlgorithmName().equals(descriptor.algorithm.name.toUpperCase())
                                 && s.getEnvironmentVariables().size() == descriptor.environmentVariables.size()));
@@ -247,7 +245,7 @@ public class TestAddComponentService {
 
     private void verifyDescriptorAlgoSaved(JsonComponentDescriptor descriptor) {
         verify(_mockPipelineService)
-                .saveAlgorithm(whereArg(algo -> algo.getName().equals(descriptor.algorithm.name.toUpperCase())
+                .saveAlgorithm(argThat(algo -> algo.getName().equals(descriptor.algorithm.name.toUpperCase())
                         && algo.supportsBatchProcessing() == descriptor.supportsBatchProcessing()
                         && algo.supportsStreamProcessing() == descriptor.supportsStreamProcessing()));
 
@@ -280,10 +278,10 @@ public class TestAddComponentService {
 
         // Assert
         verify(_mockStateService, never())
-                .update(whereArg(rcm -> rcm.getComponentState() == ComponentState.REGISTERED));
+                .update(argThat(rcm -> rcm.getComponentState() == ComponentState.REGISTERED));
 
         verify(_mockStateService)
-                .update(whereArg(rcm -> rcm.getJsonDescriptorPath().equals(DESCRIPTOR_PATH)));
+                .update(argThat(rcm -> rcm.getJsonDescriptorPath().equals(DESCRIPTOR_PATH)));
 
         verify(_mockStateService)
                 .replacePackageState(_testPackageName, ComponentState.REGISTER_ERROR);
@@ -301,7 +299,7 @@ public class TestAddComponentService {
         when(_mockNodeManager.getServiceModels())
                 .thenReturn(Collections.singletonMap("fake name", null));
 
-        when(_mockNodeManager.addService(anyNonNull()))
+        when(_mockNodeManager.addService(notNull()))
                 .thenReturn(true);
 
         // Act
@@ -316,10 +314,10 @@ public class TestAddComponentService {
         verifyCustomPipelinesSaved(descriptor);
 
         verify(_mockNodeManager)
-                .addService(whereArg(s -> s.getName().equals(COMPONENT_NAME)));
+                .addService(argThat(s -> s.getName().equals(COMPONENT_NAME)));
 
         verify(_mockStreamingServiceManager)
-                .addService(whereArg(
+                .addService(argThat(
                         s -> s.getServiceName().equals(COMPONENT_NAME)
                                 && s.getAlgorithmName().equals(descriptor.algorithm.name.toUpperCase())
                                 && s.getEnvironmentVariables().size() == descriptor.environmentVariables.size()));
@@ -329,7 +327,7 @@ public class TestAddComponentService {
 
     private void verifyCustomPipelinesSaved(JsonComponentDescriptor descriptor) {
         verify(_mockStateService, atLeastOnce())
-                .update(whereArg(
+                .update(argThat(
                         rcm -> rcm.getActions().containsAll(ACTION_NAMES)
                                 && rcm.getTasks().containsAll(TASK_NAMES)
                                 && rcm.getPipelines().contains(PIPELINE_NAME)));
@@ -338,28 +336,28 @@ public class TestAddComponentService {
         verifyDescriptorAlgoSaved(descriptor);
 
         verify(_mockPipelineService, times(3))
-                .saveAction(whereArg(ad -> ad.getAlgorithmRef().equals(REFERENCED_ALGO_NAME)));
+                .saveAction(argThat(ad -> ad.getAlgorithmRef().equals(REFERENCED_ALGO_NAME)));
 
         verify(_mockPipelineService)
-                .saveAction(whereArg(ad -> ad.getName().equals(ACTION_NAMES.get(0))
+                .saveAction(argThat(ad -> ad.getName().equals(ACTION_NAMES.get(0))
                         && ad.getProperties().stream()
                                 .anyMatch(pd -> pd.getName().equals(ACTION1_PROP_NAMES.get(0))
                                         && pd.getValue().equals(ACTION1_PROP_VALUES.get(0)))));
 
         verify(_mockPipelineService)
-                .saveTask(whereArg(t ->
+                .saveTask(argThat(t ->
                         t.getName().equals(TASK_NAMES.get(0))
                                 && t.getDescription().equals(TASK_NAMES.get(0) + " description")
                                 && t.getActions().size() == 1));
 
         verify(_mockPipelineService)
-                .saveTask(whereArg(t ->
+                .saveTask(argThat(t ->
                         t.getName().equals(TASK_NAMES.get(1))
                                 && t.getDescription().equals(TASK_NAMES.get(1) + " description")
                                 && t.getActions().size() == 2));
 
         verify(_mockPipelineService)
-                .savePipeline(whereArg(p ->
+                .savePipeline(argThat(p ->
                         p.getName().equals(PIPELINE_NAME)
                                 && p.getDescription().contains("description")
                                 && p.getTaskRefs().size() == 2));

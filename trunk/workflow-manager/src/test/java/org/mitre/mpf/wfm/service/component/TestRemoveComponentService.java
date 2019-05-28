@@ -55,7 +55,6 @@ import java.util.Optional;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.mitre.mpf.test.TestUtil.eqIgnoreCase;
-import static org.mitre.mpf.test.TestUtil.whereArg;
 import static org.mitre.mpf.wfm.service.component.TestDescriptorConstants.COMPONENT_NAME;
 import static org.mitre.mpf.wfm.service.component.TestDescriptorConstants.DESCRIPTOR_PATH;
 import static org.mockito.Mockito.*;
@@ -146,7 +145,7 @@ public class TestRemoveComponentService {
                 .removeComponent(COMPONENT_NAME);
 
         verify(_mockNodeManager)
-                .saveAndReloadNodeManagerConfig(whereArg(nodes -> nodes.contains(nodeManagerModel)
+                .saveAndReloadNodeManagerConfig(argThat(nodes -> nodes.contains(nodeManagerModel)
                         && nodes.contains(nodeManagerModel2)
                         && !nodeManagerModel.getServices().contains(serviceModel)
                         && nodeManagerModel.getServices().contains(serviceModel2)));

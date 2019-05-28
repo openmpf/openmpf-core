@@ -95,9 +95,9 @@ public class TestStartupComponentRegistrationService {
 
 		MockitoAnnotations.initMocks(this);
 
-		when(_mockAddComponentSvc.registerComponent(anyNonNull()))
+		when(_mockAddComponentSvc.registerComponent(notNull()))
 				.thenAnswer(invocation -> {
-					String arg = invocation.getArgumentAt(0);
+					String arg = invocation.getArgument(0);
 					String componentName = componentPackageToName(arg);
 
 					RegisterComponentModel result = new RegisterComponentModel();
@@ -107,8 +107,8 @@ public class TestStartupComponentRegistrationService {
 				});
 
 		//noinspection unchecked
-		when(_mockDependencyFinder.getRegistrationOrder(anyNonNull()))
-				.thenAnswer(invocation -> invocation.getArgumentAt(0).stream()
+		when(_mockDependencyFinder.getRegistrationOrder(notNull()))
+				.thenAnswer(invocation -> invocation.getArgument(0, Collection.class).stream()
 						.sorted(Comparator.comparing(p -> ((Path) p).getFileName().toString().toLowerCase()))
 						.collect(toList()));
 

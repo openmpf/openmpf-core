@@ -26,16 +26,14 @@
 
 package org.mitre.mpf.nms.streaming;
 
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.junit.Before;
 import org.junit.Test;
 import org.mitre.mpf.nms.ChannelNode;
 import org.mitre.mpf.nms.streaming.messages.LaunchStreamingJobMessage;
 import org.mitre.mpf.nms.streaming.messages.StopStreamingJobMessage;
 import org.mitre.mpf.nms.streaming.messages.StreamingJobExitedMessage;
+import org.mockito.ArgumentMatchers;
 import org.mockito.InjectMocks;
-import org.mockito.Matchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -187,22 +185,7 @@ public class TestChildStreamingJobManager {
 
 
 	private static StreamingJobExitedMessage jobExitMessage(long jobId, StreamingProcessExitReason reason) {
-		return Matchers.argThat(new BaseMatcher<StreamingJobExitedMessage>() {
-			@Override
-			public void describeTo(Description description) {
-				description.appendText("StreamingJobExitedMessage { jobId = ").appendValue(jobId);
-				if (reason != null) {
-					description.appendText(", reason = ").appendValue(reason);
-				}
-				description.appendText(" }");
-			}
-
-			@Override
-			public boolean matches(Object item) {
-				StreamingJobExitedMessage message = (StreamingJobExitedMessage) item;
-				return jobId == message.jobId && (reason == null || reason == message.reason);
-			}
-		});
+		return ArgumentMatchers.argThat(msg -> jobId == msg.jobId && (reason == null || reason == msg.reason));
 	}
 
 

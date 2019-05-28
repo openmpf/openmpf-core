@@ -49,8 +49,6 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.mitre.mpf.test.TestUtil.collectionContaining;
-import static org.mitre.mpf.test.TestUtil.whereArg;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 public class TestComponentReRegisterService {
@@ -298,7 +296,7 @@ public class TestComponentReRegisterService {
 
 	private void assertServiceModelSaved(String name, int count) {
 		verify(_mockNodeManagerService)
-				.setServiceModels(whereArg(m -> m.get(name).getServiceCount() == count));
+				.setServiceModels(argThat(m -> m.get(name).getServiceCount() == count));
 	}
 
 

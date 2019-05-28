@@ -48,7 +48,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.Assert.*;
 import static org.mitre.mpf.test.TestUtil.*;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class TestMediaInspectionProcessor {
@@ -99,7 +98,7 @@ public class TestMediaInspectionProcessor {
 
 		verify(mockInProgressJobs)
                 .addMediaInspectionInfo(eq(jobId), eq(mediaId), eq(targetHash), startsWith(targetType),
-                                        eq(targetLength), anyNonNull());
+                                        eq(targetLength), notNull());
 		verifyNoJobOrMediaError();
 
 		log.info("Image inspection passed.");

@@ -49,7 +49,6 @@ import java.util.TreeSet;
 
 import static org.junit.Assert.*;
 import static org.mitre.mpf.test.TestUtil.nonBlank;
-import static org.mockito.Matchers.*;
 import static org.mockito.Mockito.*;
 
 public class TestStorageService {

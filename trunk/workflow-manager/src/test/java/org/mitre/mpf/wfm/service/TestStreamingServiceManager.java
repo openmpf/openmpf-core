@@ -48,7 +48,6 @@ import java.util.function.Function;
 
 import static java.util.stream.Collectors.toMap;
 import static org.junit.Assert.*;
-import static org.mitre.mpf.test.TestUtil.whereArg;
 import static org.mockito.Mockito.*;
 
 public class TestStreamingServiceManager {
@@ -223,7 +222,7 @@ public class TestStreamingServiceManager {
 
 	private void verifyNumServicesSaved(InOrder inOrder, int numSaved) throws IOException {
 		inOrder.verify(_objectWriter)
-				.writeValue(notNull(OutputStream.class), whereArg(l -> ((Collection<?>) l).size() == numSaved));
+				.writeValue(any(OutputStream.class), argThat(l -> ((Collection<?>) l).size() == numSaved));
 	}
 
 

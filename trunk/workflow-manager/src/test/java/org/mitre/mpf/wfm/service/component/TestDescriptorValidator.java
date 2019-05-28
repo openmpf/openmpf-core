@@ -38,7 +38,7 @@ import java.util.Collections;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
-import static org.mitre.mpf.test.TestUtil.anyNonNull;
+import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -56,20 +56,20 @@ public class TestDescriptorValidator {
     @Test
     public void doesNotThrowExceptionWhenDescriptorNoViolations() throws InvalidComponentDescriptorException {
         Validator mockSpringValidator = mock(Validator.class);
-        when(mockSpringValidator.validate(anyNonNull()))
+        when(mockSpringValidator.validate(notNull()))
                 .thenReturn(Collections.emptySet());
 
         ComponentDescriptorValidator descriptorValidator = new ComponentDescriptorValidatorImpl(mockSpringValidator);
         descriptorValidator.validate(new JsonComponentDescriptor());
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
-    public void throwsExceptionWhenConstraintViolations() throws InvalidComponentDescriptorException {
+    public void throwsExceptionWhenConstraintViolations() {
         Validator mockSpringValidator = mock(Validator.class);
         ConstraintViolation violation = mock(ConstraintViolation.class);
 
-        //noinspection unchecked
-        when(mockSpringValidator.validate(anyNonNull()))
+        when(mockSpringValidator.validate(notNull()))
                 .thenReturn(Collections.singleton(violation));
 
         ComponentDescriptorValidator descriptorValidator = new ComponentDescriptorValidatorImpl(mockSpringValidator);

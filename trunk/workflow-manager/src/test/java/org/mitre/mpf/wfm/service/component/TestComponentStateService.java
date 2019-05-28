@@ -35,9 +35,7 @@ import org.junit.Test;
 import org.mitre.mpf.rest.api.component.ComponentState;
 import org.mitre.mpf.rest.api.component.RegisterComponentModel;
 import org.mitre.mpf.wfm.util.PropertiesUtil;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.springframework.core.io.WritableResource;
 
 import java.io.IOException;
@@ -50,7 +48,6 @@ import java.util.Optional;
 import java.util.function.Predicate;
 
 import static java.util.stream.Collectors.toList;
-import static org.mitre.mpf.test.TestUtil.whereArg;
 import static org.mockito.Mockito.*;
 
 public class TestComponentStateService {
@@ -86,7 +83,8 @@ public class TestComponentStateService {
         RegisterComponentModel otherRcm2 = new RegisterComponentModel();
         otherRcm2.setPackageFileName("Whatever.tar.gz");
 
-        when(_mockObjectMapper.readValue(any(InputStream.class), any(TypeReference.class)))
+
+        when(_mockObjectMapper.readValue((InputStream) any(), any(TypeReference.class)))
                 .thenReturn(Lists.newArrayList(otherRcm, _testRegisterModel, otherRcm2));
 
         when(_mockProperties.getComponentInfoFile())
@@ -222,10 +220,9 @@ public class TestComponentStateService {
 
 
     private void verifySavedModelList(Predicate<List<RegisterComponentModel>> predicate) throws IOException {
-        //noinspection unchecked
         verify(_mockObjectMapper)
-                .writeValue(any(OutputStream.class),
-                        whereArg(objs -> predicate.test((List<RegisterComponentModel>) objs)));
+                .writeValue((OutputStream) any(),
+                            argThat(objs -> predicate.test((List<RegisterComponentModel>) objs)));
     }
 
 

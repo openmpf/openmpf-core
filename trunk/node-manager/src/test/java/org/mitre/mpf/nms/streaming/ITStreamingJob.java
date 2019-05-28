@@ -96,7 +96,7 @@ public class ITStreamingJob {
 
 	private static Answer<StreamingProcess> createProcess(String name) {
 		return invocation -> {
-			Path iniPath = invocation.getArgumentAt(1);
+			Path iniPath = invocation.getArgument(1);
 			String[] cmdline = {
 					"python", StreamingJobTestUtil.TEST_PROCESS_PATH, name, iniPath.toString() };
 			ProcessBuilder builder = new ProcessBuilder(cmdline)

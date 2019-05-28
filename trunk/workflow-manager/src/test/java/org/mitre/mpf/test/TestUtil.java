@@ -29,14 +29,12 @@ package org.mitre.mpf.test;
 import org.apache.camel.Exchange;
 import org.apache.camel.Message;
 import org.apache.camel.impl.DefaultMessage;
-import org.hamcrest.Description;
 import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
 import org.mitre.mpf.wfm.data.entities.transients.*;
 import org.mitre.mpf.wfm.enums.ActionType;
 import org.mitre.mpf.wfm.enums.UriScheme;
 import org.mitre.mpf.wfm.util.IoUtils;
-import org.mockito.ArgumentMatcher;
-import org.mockito.Mockito;
+import org.mockito.ArgumentMatchers;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -44,7 +42,6 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Predicate;
 
 import static org.mockito.Mockito.mock;
@@ -56,72 +53,29 @@ public class TestUtil {
 
     }
 
-    public static <T> T whereArg(Predicate<T> matchPredicate) {
-        return CustomMatcher.of(matchPredicate);
-    }
-
-
     public static String nonBlank() {
-        return CustomMatcher.of("Non-blank String", s -> s != null && !s.trim().isEmpty());
+        return ArgumentMatchers.argThat(s -> s != null && !s.trim().isEmpty());
     }
 
-
-    public static <T> T anyNonNull() {
-        return CustomMatcher.of("Any not null", Objects::nonNull);
-    }
 
     public static String eqIgnoreCase(String expected) {
-        return CustomMatcher.of(expected + " (case insensitive)", s -> s.equalsIgnoreCase(expected));
+        return ArgumentMatchers.argThat(s -> s.equalsIgnoreCase(expected));
     }
 
 
     public static <T, C extends Collection<T>> C collectionContaining(Predicate<T> matchPredicate) {
-        return CustomMatcher.of("Collection containing", c -> c.stream().anyMatch(matchPredicate));
+        return ArgumentMatchers.argThat(c -> c.stream().anyMatch(matchPredicate));
     }
 
     public static <T, C extends Collection<T>> C nonEmptyCollection() {
-        return CustomMatcher.of("Non-empty Collection", c -> !c.isEmpty());
+        return ArgumentMatchers.argThat(c -> !c.isEmpty());
     }
 
     public static <K, V, M extends Map<K, V>> M nonEmptyMap() {
-        return CustomMatcher.of("Non-empty Map", m -> !m.isEmpty());
+        return ArgumentMatchers.argThat(m -> !m.isEmpty());
     }
 
 
-    private static class CustomMatcher<T> extends ArgumentMatcher<T> {
-
-        private final Predicate<T> _matchPred;
-        private final String _description;
-
-        private CustomMatcher(Predicate<T> matchPred, String description) {
-            _matchPred = matchPred;
-            _description = description;
-        }
-
-        @Override
-        public boolean matches(Object o) {
-            //noinspection unchecked
-            return _matchPred.test((T) o);
-        }
-
-        @Override
-        public void describeTo(Description description) {
-            if (_description == null) {
-                super.describeTo(description);
-            }
-            else {
-                description.appendText(_description);
-            }
-        }
-
-        public static <T> T of(Predicate<T> matchPred)  {
-            return of(null, matchPred);
-        }
-
-        public static <T> T of(String description, Predicate<T> matchPred) {
-            return Mockito.argThat(new CustomMatcher<>(matchPred, description));
-        }
-    }
 
     public static TransientJob setupJob(
             long jobId, SystemPropertiesSnapshot systemPropertiesSnapshot,
