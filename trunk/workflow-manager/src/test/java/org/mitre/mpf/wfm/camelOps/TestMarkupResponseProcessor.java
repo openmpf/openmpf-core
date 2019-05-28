@@ -110,7 +110,7 @@ public class TestMarkupResponseProcessor {
     @Test
     public void canHandleMarkupWarning() {
         doAnswer(invocation -> {
-            invocation.getArgumentAt(0, MarkupResult.class)
+            invocation.getArgumentAt(0)
                     .setMarkupStatus(MarkupStatus.COMPLETE_WITH_WARNING);
             return null;
         }).when(_mockStorageService).store(any(MarkupResult.class));

@@ -97,7 +97,7 @@ public class TestStartupComponentRegistrationService {
 
 		when(_mockAddComponentSvc.registerComponent(anyNonNull()))
 				.thenAnswer(invocation -> {
-					String arg = invocation.getArgumentAt(0, String.class);
+					String arg = invocation.getArgumentAt(0);
 					String componentName = componentPackageToName(arg);
 
 					RegisterComponentModel result = new RegisterComponentModel();
@@ -108,7 +108,7 @@ public class TestStartupComponentRegistrationService {
 
 		//noinspection unchecked
 		when(_mockDependencyFinder.getRegistrationOrder(anyNonNull()))
-				.thenAnswer(invocation -> invocation.getArgumentAt(0, Collection.class).stream()
+				.thenAnswer(invocation -> invocation.getArgumentAt(0).stream()
 						.sorted(Comparator.comparing(p -> ((Path) p).getFileName().toString().toLowerCase()))
 						.collect(toList()));
 
