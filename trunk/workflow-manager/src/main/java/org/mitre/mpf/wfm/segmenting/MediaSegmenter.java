@@ -177,16 +177,15 @@ public interface MediaSegmenter {
 	}
 
 	/**
-	 * Divides a large segment into a collection of zero or more segments which respect the target
-	 * and minimum segment length parameters.
-	 * <ul>
-	 * <li>If the length of the input is less than the provided minSegmentLength,
-	 *          this method will return an empty collection.</li>
-	 * <li>Provided the length of the input exceeds the provided minSegmentLength,
-	 *          all but the last segment in the returned collection will have a length of targetSegmentLength.</li>
-	 * <li>Provided the length of the input exceeds the provided minSegmentLength, The last segment in the returned
-	 *          collection will have a length between [minSegmentLength, targetSegmentLength).</li>
-	 * </ul>
+	 * Divides a large segment into a collection of one or more segments which respect the target and minimum segment
+	 * length parameters.
+	 *
+	 * If the length of the input is less than the provided targetSegmentLength, then only one segment will be returned.
+	 * It will be the entire size of the input.
+	 *
+	 * If the length of the input is at least the provided targetSegmentLength, all but the last segment in the returned
+	 * collection are guaranteed to have a length of targetSegmentLength. The last segment will have a length between
+	 * [minSegmentLength, targetSegmentLength + minSegmentLength - 1].
 	 *
 	 * @param timePair The TimePair representing the inclusive start and stop times from which segments are
 	 *                      to be created.
@@ -204,7 +203,7 @@ public interface MediaSegmenter {
 
 		List<TimePair> result = new ArrayList<>(timePair.length() / targetSegmentLength);
 		for (int start = timePair.getStartInclusive(); start <= timePair.getEndInclusive(); start += targetSegmentLength) {
-			if (timePair.getEndInclusive() <= (start + (targetSegmentLength - 1) + minSegmentLength)) {
+			if (timePair.getEndInclusive() <= (start + (targetSegmentLength - 1) + (minSegmentLength - 1))) {
 				result.add(new TimePair(start, timePair.getEndInclusive()));
 				break;
 			}
