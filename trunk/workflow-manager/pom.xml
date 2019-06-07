@@ -848,8 +848,8 @@
             <id>protractor</id>
             <build>
                 <plugins>
-                    <!-- protractor needs to be installed prior, tomcat needs to be running (manually or through tomcat7-maven-plugin)
-                    you will also need to have the environmental variable DISPLAY=:99 for xvfb - cannot use exec or tomcat7-maven-plugin plugin
+                    <!-- protractor needs to be installed prior, tomcat needs to be running (manually or through tomcat8-maven-plugin)
+                    you will also need to have the environmental variable DISPLAY=:99 for xvfb - cannot use exec or tomcat8-maven-plugin plugin
                     e.g. export DISPLAY=:99 -->
                     <plugin>
                         <groupId>com.github.greengerong</groupId>

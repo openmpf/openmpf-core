@@ -113,19 +113,19 @@
     group=mpf
     mode=0775
    
- - name: Install Tomcat7 service file
+ - name: Install Tomcat8 service file
    copy:
-     src=../files/tomcat7
-     dest=/etc/init.d/tomcat7
+     src=../files/tomcat8
+     dest=/etc/init.d/tomcat8
      
- - name: Change permissions on Tomcat7 service file
+ - name: Change permissions on Tomcat8 service file
    file:
-     path=/etc/init.d/tomcat7
+     path=/etc/init.d/tomcat8
      mode=0755
 
- - name: Set Tomcat7 to run as mpf user
+ - name: Set Tomcat8 to run as mpf user
    lineinfile: 
-     dest="/etc/init.d/tomcat7"
+     dest="/etc/init.d/tomcat8"
      regexp="^RUN_SCRIPT="
      line="RUN_SCRIPT=\"daemon --user=mpf ${CATALINA_HOME}/bin/catalina.sh\""
      state=present
@@ -162,7 +162,7 @@
      insertafter=EOF
    when: not deployment_config.https.install
 
- - name: Set Tomcat7 owner to MPF
+ - name: Set Tomcat8 owner to MPF
    file: 
      path="{{ tomcat_home }}"
      state=directory
@@ -176,7 +176,7 @@
    become_method: sudo
    command: systemctl daemon-reload
    
- - name: Enable Tomcat7 on startup
+ - name: Enable Tomcat8 on startup
    service: 
-     name=tomcat7
+     name=tomcat8
      enabled=yes

@@ -26,5 +26,5 @@
 #############################################################################
 
 #echo "This is the MPF workflow manager package post-install script"
-/sbin/chkconfig --add tomcat7
-/sbin/chkconfig tomcat7 on
+/sbin/chkconfig --add tomcat8
+/sbin/chkconfig tomcat8 on

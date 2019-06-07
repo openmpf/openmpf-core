@@ -142,7 +142,7 @@
 
     - name: Start workflow-manager
       service:
-        name=tomcat7
+        name=tomcat8
         state=restarted
         sleep=15
     
@@ -155,7 +155,7 @@
 
     - name: Start workflow-manager
       service:
-        name=tomcat7
+        name=tomcat8
         state=restarted
         sleep=15
 

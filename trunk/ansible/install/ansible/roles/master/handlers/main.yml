@@ -26,4 +26,4 @@
 ---
 #file: roles/child/handlers/main.yml
 - name: Restart workflow-manager
-  service: name=tomcat7 state=restarted
+  service: name=tomcat8 state=restarted

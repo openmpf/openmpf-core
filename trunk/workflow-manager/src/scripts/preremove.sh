@@ -26,8 +26,8 @@
 #############################################################################
 
 #echo "This is the MPF workflow manager package pre-uninstall script"
-[ -f /etc/init.d/tomcat7 ] && service tomcat7 stop &> /dev/null
+[ -f /etc/init.d/tomcat8 ] && service tomcat8 stop &> /dev/null
 #need to wait briefly to allow tomcat to shut down processes it started
 sleep 5
-/sbin/chkconfig tomcat7 off &> /dev/null
-/sbin/chkconfig --del tomcat7 &> /dev/null
+/sbin/chkconfig tomcat8 off &> /dev/null
+/sbin/chkconfig --del tomcat8 &> /dev/null

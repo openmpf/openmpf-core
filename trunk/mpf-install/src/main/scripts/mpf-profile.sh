@@ -51,7 +51,7 @@ export JGROUPS_TCP_ADDRESS=$THIS_MPF_NODE
 export JGROUPS_TCP_PORT=7800
 export JGROUPS_FILE_PING_LOCATION=$MPF_HOME/share/nodes
 
-# although CATALINA_OPTS is set in /opt/apache-tomcat/bin/setenv.sh, it's necessary to also set it here for the tomcat7-maven-plugin
+# although CATALINA_OPTS is set in /opt/apache-tomcat/bin/setenv.sh, it's necessary to also set it here for the tomcat8-maven-plugin
 export CATALINA_OPTS="-server -Xms256m -XX:PermSize=512m -XX:MaxPermSize=512m -Djava.library.path=$MPF_HOME/lib -Dtransport.guarantee='NONE' -Dweb.rest.protocol='http'"
 
 export ACTIVE_MQ_HOST=$MASTER_MPF_NODE

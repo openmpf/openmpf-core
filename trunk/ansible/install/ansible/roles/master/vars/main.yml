@@ -31,7 +31,7 @@ activemq_home: "/opt/apache-activemq"
 mpf_properties: "{{ tomcat_home }}/webapps/workflow-manager/WEB-INF/classes/properties/mpf.properties"
 mpf_custom_properties: "{{ mpf_home }}/config/mpf-custom.properties"
 webapps_delete: ["docs", "examples", "host-manager", "manager", "ROOT", "workflow-manager"]
-tomcat_version: 7.0.72
+tomcat_version: 8.5.41
 activemq_version: 5.13.0
 master_host: "{{ hostvars[groups['mpf-master'][0]]['inventory_hostname'] }}"
 first_child_host: "{{ hostvars[groups['mpf-child'][0]]['inventory_hostname'] }}"

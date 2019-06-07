@@ -364,7 +364,7 @@ class NodeManagerManager(BaseMpfSystemDependencyManager):
 
 
 class TomcatManager(BaseMpfSystemDependencyManager):
-    SERVICE_NAME = 'tomcat7'
+    SERVICE_NAME = 'tomcat8'
 
     def __init__(self, mpf_config):
         super(TomcatManager, self).__init__(mpf_config)

@@ -38,7 +38,7 @@
 
 - name: Stop workflow-manager
   service:
-    name: tomcat7
+    name: tomcat8
     state: stopped
   notify: Merge custom Algorithms, Actions, Tasks, and Pipelines
   delegate_to: "{{ master_host }}"
@@ -56,7 +56,7 @@
 
 - name: Start workflow-manager
   service:
-    name=tomcat7
+    name=tomcat8
     state=restarted
     sleep=15
   notify: Waiting for workflow-manager to startup
