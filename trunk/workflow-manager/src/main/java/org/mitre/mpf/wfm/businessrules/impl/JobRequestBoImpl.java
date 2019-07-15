@@ -57,6 +57,7 @@ import org.springframework.util.FileSystemUtils;
 
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -129,7 +130,9 @@ public class JobRequestBoImpl implements JobRequestBo {
      * @return
      */
     @Override
-    public JsonJobRequest createRequest(String externalId, String pipelineName, List<JsonMediaInputObject> media, Map<String, Map<String, String>> algorithmProperties, Map<String, String> jobProperties, boolean buildOutput, int priority) {
+    public JsonJobRequest createRequest(String externalId, String pipelineName, List<JsonMediaInputObject> media,
+                                        Map<String, Map<String, String>> algorithmProperties,
+                                        Map<String, String> jobProperties, boolean buildOutput, int priority) {
 
         JsonJobRequest jsonJobRequest = new JsonJobRequest(TextUtils.trim(externalId), buildOutput, pipelineService.createJsonPipeline(pipelineName), priority);
         if (media != null) {
@@ -139,8 +142,14 @@ public class JobRequestBoImpl implements JobRequestBo {
         // update to add the job algorithm-specific-properties, supporting the priority:
         // action-property defaults (lowest) -> action-properties -> job-properties -> algorithm-properties -> media-properties (highest)
         if (algorithmProperties != null) {
-            for (Map.Entry<String, Map<String, String>> property : algorithmProperties.entrySet()) {
-                jsonJobRequest.getAlgorithmProperties().put(property.getKey().toUpperCase(), property.getValue());
+            for (Map.Entry<String, Map<String, String>> algorithm : algorithmProperties.entrySet()) {
+                Map<String, String> properties = algorithm.getValue();
+                Map<String, String> cleanedProperties = new LinkedHashMap<>();
+                for (Map.Entry<String, String> property : properties.entrySet()) {
+                    cleanedProperties.put(TextUtils.trim(property.getKey()), property.getValue());
+                }
+                jsonJobRequest.getAlgorithmProperties().put(TextUtils.trim(algorithm.getKey().toUpperCase()),
+                        cleanedProperties);
             }
         }
 
