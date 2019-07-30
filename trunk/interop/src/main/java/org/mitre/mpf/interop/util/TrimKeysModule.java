@@ -5,13 +5,13 @@ import com.fasterxml.jackson.databind.KeyDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import org.apache.commons.lang3.StringUtils;
 
-public final class StripWhitespaceModule extends SimpleModule {
+public final class TrimKeysModule extends SimpleModule {
 
-    public StripWhitespaceModule() {
+    public TrimKeysModule() {
         addKeyDeserializer(String.class, new KeyDeserializer() {
             @Override
             public Object deserializeKey(String key, DeserializationContext context) {
-                return StringUtils.trimToNull(key);
+                return StringUtils.trimToEmpty(key);
             }
         });
     }

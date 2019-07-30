@@ -72,6 +72,8 @@ public class JsonUtils {
     private void init() {
         smileObjectMapper = new ObjectMapper(new SmileFactory());
         smileObjectMapper.registerModule(new InstantJsonModule());
+//        smileObjectMapper.registerModule(new TrimKeysModule());
+//        smileObjectMapper.registerModule(new TrimValuesModule());
     }
 
     /** Parses the provided smile binary JSON object as an instance of the specified type or throws an exception if this conversion cannot be performed. */
