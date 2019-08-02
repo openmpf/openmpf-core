@@ -26,7 +26,6 @@
 
 package org.mitre.mpf.wfm.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
@@ -105,7 +104,7 @@ public class TestObjectMapperFactory {
         List<String> stringListField = List.of("item 1  ", "  item 2");
         Map<String, String> stringMapField = Map.of(" key 1\t", "value 1  ", "  key 2", "    value 2");
 
-        Map<String, Object> model = Map.of("stringField", stringField,
+        Map<String, Object> model = Map.of("stringField  ", stringField,
                                         "stringListField", stringListField,
                                         "stringMapField", stringMapField);
 
