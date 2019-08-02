@@ -66,14 +66,14 @@ public class TestObjectMapperFactory {
     public void deserializeClassWithKeyWhitespace() throws IOException {
         ObjectMapper objectMapper = ObjectMapperFactory.customObjectMapper();
         TestModel model1 = new TestModel();
-        model1.stringField = " asdf ";
+        model1.stringField = " field 1 ";
         model1.stringListField = List.of("  item 1", "item 2      ");
         model1.stringMapField = Map.of("key 1 ", "value 1      \t", "  key 2 ", " value 2");
         String serialized = objectMapper.writeValueAsString(model1);
         System.out.println("Model:" + serialized);
 
         TestModel deserialized = ObjectMapperFactory.customObjectMapper().readValue(serialized, TestModel.class);
-        Assert.assertEquals("field", deserialized.stringField);
+        Assert.assertEquals("field 1", deserialized.stringField);
         Assert.assertEquals(List.of("item 1", "item 2"), deserialized.stringListField);
         Assert.assertEquals(Map.of("key 1", "value 1", "key 2", "value 2"),
                 deserialized.stringMapField);
@@ -84,14 +84,14 @@ public class TestObjectMapperFactory {
     public void deserializeClassWithValueNoWhitespace() throws IOException {
         ObjectMapper objectMapper = ObjectMapperFactory.customObjectMapper();
         TestModel model1 = new TestModel();
-        model1.stringField = "field";
+        model1.stringField = "field 1";
         model1.stringListField = List.of("item 1", "item 2");
         model1.stringMapField = Map.of("key 1", "value 1", "key 2", "value 2");
         String serialized = objectMapper.writeValueAsString(model1);
         System.out.println("Model:" + serialized);
 
         TestModel deserialized = ObjectMapperFactory.customObjectMapper().readValue(serialized, TestModel.class);
-        Assert.assertEquals("field", deserialized.stringField);
+        Assert.assertEquals("field 1", deserialized.stringField);
         Assert.assertEquals(List.of("item 1", "item 2"), deserialized.stringListField);
         Assert.assertEquals(ImmutableMap.of("key 1", "value 1", "key 2", "value 2"),
                 deserialized.stringMapField);
@@ -101,18 +101,18 @@ public class TestObjectMapperFactory {
     public void deserializeClassFromString() throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
 
-        String stringField = " \t field   ";
+        String stringField = " \t field 1  ";
         List<String> stringListField = List.of("item 1  ", "  item 2");
         Map<String, String> stringMapField = Map.of(" key 1\t", "value 1  ", "  key 2", "    value 2");
 
-        Map<String, Object> model = Map.of(" stringField ", stringField,
-                                        "\t  stringListField  ", stringListField,
-                                        "  stringMapField    ", stringMapField);
+        Map<String, Object> model = Map.of("stringField", stringField,
+                                        "stringListField", stringListField,
+                                        "stringMapField", stringMapField);
 
         String serialized = objectMapper.writeValueAsString(model);
 
         TestModel deserialized = ObjectMapperFactory.customObjectMapper().readValue(serialized, TestModel.class);
-        Assert.assertEquals("field", deserialized.stringField);
+        Assert.assertEquals("field 1", deserialized.stringField);
         Assert.assertEquals(List.of("item 1", "item 2"), deserialized.stringListField);
         Assert.assertEquals(ImmutableMap.of("key 1", "value 1", "key 2", "value 2"),
                 deserialized.stringMapField);
