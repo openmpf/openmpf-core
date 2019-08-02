@@ -33,17 +33,19 @@ import org.mitre.mpf.interop.JsonAction;
 import org.mitre.mpf.interop.JsonPipeline;
 import org.mitre.mpf.interop.JsonStage;
 import org.mitre.mpf.interop.util.InstantJsonModule;
+import org.mitre.mpf.interop.util.TrimKeysModule;
+import org.mitre.mpf.interop.util.TrimValuesModule;
 import org.mitre.mpf.wfm.WfmProcessingException;
 import org.mitre.mpf.wfm.data.entities.transients.TransientAction;
 import org.mitre.mpf.wfm.data.entities.transients.TransientPipeline;
 import org.mitre.mpf.wfm.data.entities.transients.TransientStage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -65,15 +67,17 @@ public class JsonUtils {
      * Single instance of the ObjectMapper which converts between Java objects and text-based JSON. While less efficient
      * in terms of space, text-based JSON remains user-readable.
      */
-    @Autowired
     private ObjectMapper jsonObjectMapper;
 
+    @Inject
+    public JsonUtils(ObjectMapper jsonObjectMapper) {
+        this.jsonObjectMapper = jsonObjectMapper;
+    }
+
     @PostConstruct
-    private void init() {
+    public void init() {
         smileObjectMapper = new ObjectMapper(new SmileFactory());
         smileObjectMapper.registerModule(new InstantJsonModule());
-//        smileObjectMapper.registerModule(new TrimKeysModule());
-//        smileObjectMapper.registerModule(new TrimValuesModule());
     }
 
     /** Parses the provided smile binary JSON object as an instance of the specified type or throws an exception if this conversion cannot be performed. */
