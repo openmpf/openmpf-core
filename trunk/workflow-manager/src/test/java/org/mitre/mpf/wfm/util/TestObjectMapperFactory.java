@@ -26,18 +26,15 @@
 
 package org.mitre.mpf.wfm.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mitre.mpf.interop.util.MpfObjectMapper;
-import org.mitre.mpf.rest.api.JobCreationRequest;
-import org.mitre.mpf.wfm.util.JsonUtils;
-import org.mitre.mpf.wfm.util.ObjectMapperFactory;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -46,145 +43,12 @@ public class TestObjectMapperFactory {
 
 
     private static class TestModel {
-        String stringField;
+        public String stringField;
 
-        List<String> stringListField;
+        public List<String> stringListField;
 
-        Map<String, String> stringMapField;
+        public Map<String, String> stringMapField;
     }
-
-    private static final String KEY_WHITESPACE = "{\n"+
-            "\"stringField\": \"value\",\n"+
-            "\"stringListField\": [\n"+
-            "    \"string1\",\n"+
-            "    \"string2\"\n"+
-            "  ],\n"+
-            "}\n"+
-            "\"stringMapField\": {\n"+
-            "    \" string1\": \"value\",\n"+
-            "    \"string2  \": \"value \",\n"+
-            "    \"  string3  \": \"value\"\n"+
-            "}";
-
-    private static final String JOB_KEY_WHITESPACE = "{\n"+
-            "  \"algorithmProperties\": {\n"+
-            "      \"FACECV\": {\n"+
-            "         \"FEED_FORWARD_TYPE\": \"FRAME\",\n"+
-            "         \"AUTO_ROTATE\": \"true \",\n"+
-            "         \"AUTO_FLIP\": \"true\",\n"+
-            "         \"MODEL_NAME\": \"TINY YOLO\",\n"+
-            "         \"CUDA_DEVICE_ID  \": 0,\n"+
-            "         \"MERGE_TRACKS\": \"true\",\n"+
-            "         \"MIN_OVERLAP:\": 0.4,\n"+
-            "         \"  MIN_GAP_BETWEEN_TRACKS\": \"10\",\n"+
-            "         \"  MIN_TRACK_LENGTH \": 2\n"+
-            "      }\n"+
-            "\n"+
-            "},\n"+
-            "  \"buildOutput\": \"true\",\n"+
-            "  \"callbackMethod\": \"\",\n"+
-            "  \"callbackURL\": \"\",\n"+
-            "  \"externalId\": \"11\",\n"+
-            "  \"jobProperties\": {},\n"+
-            "  \"media\": [\n"+
-            "    {\n"+
-            "      \"mediaUri\": \"file:/home/mpf/openmpf-projects/openmpf/trunk/install/share/remote-media/ferrar-2s-small.mp4\",\n"+
-            "      \"properties\": {}\n"+
-            "    }\n"+
-            "  ],\n"+
-            "  \"pipelineName\": \"OCV FACE DETECTION PIPELINE\",\n"+
-            "  \"priority\": \"4\"\n"+
-            "}";
-
-    private static final String VALUE_WHITESPACE = "{\n"+
-            "  \"algorithmProperties\": {\n"+
-            "      \"FACECV\": {\n"+
-            "         \"FEED_FORWARD_TYPE\": \"FRAME\",\n"+
-            "         \"AUTO_ROTATE\": \"true \",\n"+
-            "         \"AUTO_FLIP\": \"true\",\n"+
-            "         \"MODEL_NAME\": \"TINY YOLO\",\n"+
-            "         \"CUDA_DEVICE_ID\":   0  ,\n"+
-            "         \"MERGE_TRACKS\": \"true\",\n"+
-            "         \"MIN_OVERLAP:\": 0.4 ,\n"+
-            "         \"MIN_GAP_BETWEEN_TRACKS\": \"10\",\n"+
-            "         \"MIN_TRACK_LENGTH\": 2\n"+
-            "      }\n"+
-            "\n"+
-            "},\n"+
-            "  \"buildOutput\": \"true \",\n"+
-            "  \"callbackMethod\": \"\",\n"+
-            "  \"callbackURL\": \"\",\n"+
-            "  \"externalId\": \"11 \",\n"+
-            "  \"jobProperties\": {},\n"+
-            "  \"media\": [\n"+
-            "    {\n"+
-            "      \"mediaUri\": \"file:/home/mpf/openmpf-projects/openmpf/trunk/install/share/remote-media/ferrar-2s-small.mp4\",\n"+
-            "      \"properties\": {}\n"+
-            "    }\n"+
-            "  ],\n"+
-            "  \"pipelineName\": \"OCV FACE DETECTION PIPELINE\",\n"+
-            "  \"priority\": \"4  \"\n"+
-            "}";
-
-    private static final String KEY_AND_VALUE_WHITESPACE = "{\n"+
-            "  \"algorithmProperties\": {\n"+
-            "      \"FACECV\": {\n"+
-            "         \"FEED_FORWARD_TYPE\": \"FRAME\",\n"+
-            "         \"AUTO_ROTATE\": \"true \",\n"+
-            "         \"AUTO_FLIP\": \"true\",\n"+
-            "         \"MODEL_NAME\": \"TINY YOLO\",\n"+
-            "         \"CUDA_DEVICE_ID  \":   0  ,\n"+
-            "         \"MERGE_TRACKS\": \"true\",\n"+
-            "         \"MIN_OVERLAP:\": 0.4 ,\n"+
-            "         \"  MIN_GAP_BETWEEN_TRACKS\": \"10\",\n"+
-            "         \"  MIN_TRACK_LENGTH \": 2\n"+
-            "      }\n"+
-            "\n"+
-            "},\n"+
-            "  \"buildOutput\": \"true \",\n"+
-            "  \"callbackMethod\": \"\",\n"+
-            "  \"callbackURL\": \"\",\n"+
-            "  \"externalId\": \"11 \",\n"+
-            "  \"jobProperties\": {},\n"+
-            "  \"media\": [\n"+
-            "    {\n"+
-            "      \"mediaUri\": \"file:/home/mpf/openmpf-projects/openmpf/trunk/install/share/remote-media/ferrar-2s-small.mp4\",\n"+
-            "      \"properties\": {}\n"+
-            "    }\n"+
-            "  ],\n"+
-            "  \"pipelineName\": \"OCV FACE DETECTION PIPELINE\",\n"+
-            "  \"priority\": \"4  \"\n"+
-            "}";
-
-    private static final String NO_WHITESPACE = "{\n"+
-            "  \"algorithmProperties\": {\n"+
-            "      \"FACECV\": {\n"+
-            "         \"FEED_FORWARD_TYPE\": \"FRAME\",\n"+
-            "         \"AUTO_ROTATE\": \"true \",\n"+
-            "         \"AUTO_FLIP\": \"true\",\n"+
-            "         \"MODEL_NAME\": \"TINY YOLO\",\n"+
-            "         \"CUDA_DEVICE_ID \": 0,\n"+
-            "         \"MERGE_TRACKS\": \"true\",\n"+
-            "         \"MIN_OVERLAP:\": 0.4,\n"+
-            "         \"MIN_GAP_BETWEEN_TRACKS\": \"10\",\n"+
-            "         \"MIN_TRACK_LENGTH\": 2\n"+
-            "      }\n"+
-            "\n"+
-            "},\n"+
-            "  \"buildOutput\": \"true\",\n"+
-            "  \"callbackMethod\": \"\",\n"+
-            "  \"callbackURL\": \"\",\n"+
-            "  \"externalId\": \"11\",\n"+
-            "  \"jobProperties\": {},\n"+
-            "  \"media\": [\n"+
-            "    {\n"+
-            "      \"mediaUri\": \"file:/home/mpf/openmpf-projects/openmpf/trunk/install/share/remote-media/ferrar-2s-small.mp4\",\n"+
-            "      \"properties\": {}\n"+
-            "    }\n"+
-            "  ],\n"+
-            "  \"pipelineName\": \"OCV FACE DETECTION PIPELINE\",\n"+
-            "  \"priority\": \"4\"\n"+
-            "}";
 
     private JsonUtils jsonUtils;
     private ObjectMapper mapper;
@@ -200,40 +64,58 @@ public class TestObjectMapperFactory {
 
     @Test
     public void deserializeClassWithKeyWhitespace() throws IOException {
-        byte[] byteString = KEY_WHITESPACE.getBytes();
-//        TestModel model = jsonUtils.deserializeFromText(byteString, TestModel.class);
-
-//        Map<String, String> nestedMap = model.stringMapField;
-
-//        Assert.assertEquals("value", nestedMap.get("string1"));
-//        Assert.assertEquals("value", nestedMap.get("string2"));
-//        Assert.assertEquals("value", nestedMap.get("string3"));
-//        Assert.assertEquals("value", model.stringField);
-
         ObjectMapper objectMapper = ObjectMapperFactory.customObjectMapper();
         TestModel model1 = new TestModel();
         model1.stringField = " asdf ";
-        model1.stringListField = List.of("item 1", "item 2      ");
-        model1.stringMapField = ImmutableMap.of("key 1", "value 1", "key 2 ", "value 2");
+        model1.stringListField = List.of("  item 1", "item 2      ");
+        model1.stringMapField = Map.of("key 1 ", "value 1      \t", "  key 2 ", " value 2");
         String serialized = objectMapper.writeValueAsString(model1);
         System.out.println("Model:" + serialized);
 
         TestModel deserialized = ObjectMapperFactory.customObjectMapper().readValue(serialized, TestModel.class);
-        Assert.assertEquals("asdf", deserialized.stringField);
+        Assert.assertEquals("field", deserialized.stringField);
+        Assert.assertEquals(List.of("item 1", "item 2"), deserialized.stringListField);
+        Assert.assertEquals(Map.of("key 1", "value 1", "key 2", "value 2"),
+                deserialized.stringMapField);
 
     }
 
-    //    @Test
-    public void deserializeJobWithValueWhitespace() {
-        byte[] byteString = KEY_WHITESPACE.getBytes();
-        JobCreationRequest jobRequest = jsonUtils.deserializeFromText(byteString, JobCreationRequest.class);
+    @Test
+    public void deserializeClassWithValueNoWhitespace() throws IOException {
+        ObjectMapper objectMapper = ObjectMapperFactory.customObjectMapper();
+        TestModel model1 = new TestModel();
+        model1.stringField = "field";
+        model1.stringListField = List.of("item 1", "item 2");
+        model1.stringMapField = Map.of("key 1", "value 1", "key 2", "value 2");
+        String serialized = objectMapper.writeValueAsString(model1);
+        System.out.println("Model:" + serialized);
 
-        Map<String, String> properties = jobRequest.getAlgorithmProperties().get("FACECV");
+        TestModel deserialized = ObjectMapperFactory.customObjectMapper().readValue(serialized, TestModel.class);
+        Assert.assertEquals("field", deserialized.stringField);
+        Assert.assertEquals(List.of("item 1", "item 2"), deserialized.stringListField);
+        Assert.assertEquals(ImmutableMap.of("key 1", "value 1", "key 2", "value 2"),
+                deserialized.stringMapField);
+    }
 
-        Assert.assertEquals("value", properties.get("string1"));
-        Assert.assertEquals("value", properties.get("string2"));
-        Assert.assertEquals("value", properties.get("string3"));
-        Assert.assertEquals("11", jobRequest.getExternalId());
+    @Test
+    public void deserializeClassFromString() throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+
+        String stringField = " \t field   ";
+        List<String> stringListField = List.of("item 1  ", "  item 2");
+        Map<String, String> stringMapField = Map.of(" key 1\t", "value 1  ", "  key 2", "    value 2");
+
+        Map<String, Object> model = Map.of(" stringField ", stringField,
+                                        "\t  stringListField  ", stringListField,
+                                        "  stringMapField    ", stringMapField);
+
+        String serialized = objectMapper.writeValueAsString(model);
+
+        TestModel deserialized = ObjectMapperFactory.customObjectMapper().readValue(serialized, TestModel.class);
+        Assert.assertEquals("field", deserialized.stringField);
+        Assert.assertEquals(List.of("item 1", "item 2"), deserialized.stringListField);
+        Assert.assertEquals(ImmutableMap.of("key 1", "value 1", "key 2", "value 2"),
+                deserialized.stringMapField);
     }
 
 }

@@ -41,9 +41,9 @@ public class ObjectMapperFactory {
     @Bean
     public static ObjectMapper customObjectMapper() {
         return Jackson2ObjectMapperBuilder.json()
-                .modules(new InstantJsonModule())
-//                        new TrimKeysModule(),
-//                        new TrimValuesModule())
+                .modules(new InstantJsonModule(),
+                        new TrimKeysModule(),
+                        new TrimValuesModule())
                 .build();
     }
 }
