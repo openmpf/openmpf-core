@@ -27,7 +27,10 @@
 package org.mitre.mpf.mvc.controller;
 
 import com.google.common.collect.ImmutableSet;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import org.mitre.mpf.rest.api.MessageModel;
 import org.mitre.mpf.rest.api.ResponseMessage;
 import org.mitre.mpf.rest.api.component.RegisterComponentModel;
@@ -35,7 +38,6 @@ import org.mitre.mpf.wfm.service.component.*;
 import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +64,6 @@ import java.util.function.Supplier;
      description = "External component registration and removal" )
 @Controller
 @Scope("request")
-@Profile("website")
 public class AdminComponentRegistrationController {
 
     private static final Logger log = LoggerFactory.getLogger(AdminComponentRegistrationController.class);

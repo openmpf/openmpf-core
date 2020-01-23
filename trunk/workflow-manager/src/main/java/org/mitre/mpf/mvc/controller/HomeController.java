@@ -36,7 +36,6 @@ import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Controller;
@@ -53,7 +52,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 description = "Web application metadata" )
 @Controller
 @Scope("request")
-@Profile("website")
 public class HomeController
 {
 	@Autowired
@@ -73,7 +71,7 @@ public class HomeController
 		log.debug("Welcome to the workflow-manager web app!");
 
 		//experimenting with spring profiles - but it looks like the context would need refreshed
-		//if set this way - left commented out for further investigation - 
+		//if set this way - left commented out for further investigation -
 		//env.setActiveProfiles("default");
 		//env.setActiveProfiles("website");
 
@@ -95,7 +93,7 @@ public class HomeController
 		return "index";
 	}
 
-	@RequestMapping(value = "/rest/info", method = RequestMethod.GET, 
+	@RequestMapping(value = "/rest/info", method = RequestMethod.GET,
 			produces = "application/json;charset=UTF-8")
 	@ApiOperation(value="Returns metadata about the Workflow Manager, such as version and build number",
 	notes="Note that some of this information is set only during official builds; if you get a '0' or 'unknown', that indicates that this was not an official build.",
@@ -106,8 +104,8 @@ public class HomeController
 		return modelUtils.getInfoModel();
 	}
 
-	@RequestMapping(value = "/info", method = RequestMethod.GET, 
-			produces = "application/json;charset=UTF-8")	
+	@RequestMapping(value = "/info", method = RequestMethod.GET,
+			produces = "application/json;charset=UTF-8")
 	@ResponseBody
 	public InfoModel getInfo() {
 		return modelUtils.getInfoModel();

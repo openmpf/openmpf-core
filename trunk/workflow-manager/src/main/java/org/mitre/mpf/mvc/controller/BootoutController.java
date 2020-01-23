@@ -27,7 +27,6 @@
 package org.mitre.mpf.mvc.controller;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -42,7 +41,6 @@ import java.io.IOException;
 
 @Controller
 @Scope("request")
-@Profile("website")
 public class BootoutController {
 
     private static final Logger log = LoggerFactory.getLogger(BootoutController.class);
@@ -64,7 +62,7 @@ public class BootoutController {
             response.sendError(CUSTOM_SESSION_BOOTOUT_ERROR_CODE);
             return null;
         }
-       
+
         ModelAndView mv = new ModelAndView("bootout");
         return mv;
     }

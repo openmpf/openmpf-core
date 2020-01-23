@@ -38,7 +38,6 @@ import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -56,7 +55,6 @@ import static java.util.stream.Collectors.toList;
         description = "Streaming job create, status, cancel")
 @Controller
 @Scope("request")
-@Profile("website")
 public class StreamingJobController {
     private static final Logger log = LoggerFactory.getLogger(StreamingJobController.class);
 

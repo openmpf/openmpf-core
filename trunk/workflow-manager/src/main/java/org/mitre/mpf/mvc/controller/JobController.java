@@ -46,7 +46,6 @@ import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.InputStreamResource;
@@ -72,7 +71,6 @@ import static java.util.stream.Collectors.toList;
         description = "Job create, status, cancel, resubmit, output")
 @Controller
 @Scope("request")
-@Profile("website")
 public class JobController {
     private static final Logger log = LoggerFactory.getLogger(JobController.class);
 

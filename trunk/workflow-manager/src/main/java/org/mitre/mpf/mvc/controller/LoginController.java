@@ -27,12 +27,11 @@
 package org.mitre.mpf.mvc.controller;
 
 import org.mitre.mpf.mvc.model.AuthenticationModel;
-import org.mitre.mpf.rest.api.InfoModel;
 import org.mitre.mpf.mvc.util.ModelUtils;
+import org.mitre.mpf.rest.api.InfoModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -54,7 +53,6 @@ import java.util.Map;
 
 @Controller
 @Scope("request")
-@Profile("website")
 public class LoginController {
 
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
@@ -64,7 +62,7 @@ public class LoginController {
 
 
     private static Map<String, Boolean> firstLoginMap = new HashMap<String, Boolean>();
-    
+
     public static AuthenticationModel getAuthenticationModel(HttpServletRequest request) {
         // get security context from thread local
         SecurityContext context = SecurityContextHolder.getContext();
@@ -80,11 +78,11 @@ public class LoginController {
                 admin = authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
             }
         }
-        
+
         if(request != null && request.getUserPrincipal() != null) {
         	userPrincipalName = request.getUserPrincipal().getName();
         }
-              
+
         //if doesn't contain, has to be the first login
         boolean userFirstLogin = (firstLoginMap.containsKey(userPrincipalName)) ? firstLoginMap.get(userPrincipalName) : true;
         AuthenticationModel authenticationModel = new AuthenticationModel(authenticated, admin, userPrincipalName, userFirstLogin);
@@ -92,7 +90,7 @@ public class LoginController {
         if(userFirstLogin && userPrincipalName != null) {
         	firstLoginMap.put(userPrincipalName, false);
         }
-     	return authenticationModel;        
+     	return authenticationModel;
     }
 
     /** a helper method to put in all the security credentials needed
@@ -100,11 +98,11 @@ public class LoginController {
      *  Note:  requires that the ModelAndView passed in is instantiated in
      *      the calling controller; this is also the ModelAndView returned
      *      after the credentials are set
-     *  code is a combination of the following:  
+     *  code is a combination of the following:
      *      http://stackoverflow.com/a/10232526/1274852
      *      http://stackoverflow.com/a/12455803/1274852
      */
-    public static ModelAndView setSecurityCredentialsForView( 
+    public static ModelAndView setSecurityCredentialsForView(
         HttpServletRequest request, // needed for UserPrincipal
         ModelAndView mv )           // the mv of each controller, already instantiated
     {
@@ -115,7 +113,7 @@ public class LoginController {
         mv.addObject("UserPrincipalName", authenticationModel.getUserPrincipalName());
 
         return mv;
-    }    
+    }
 
     @RequestMapping(value = { "/login" }, method = RequestMethod.GET)
     public ModelAndView getLogin(
@@ -148,14 +146,14 @@ public class LoginController {
             model.addObject("msg", "Session timed out or expired.");
             clearSession = true;
         }
-        
+
         //reset the first login of the user back to true here!
         AuthenticationModel authenticationModel = getAuthenticationModel(servletRequest);
         if(authenticationModel.getUserPrincipalName() != null) {
         	//checking if null because the login?<@RequestParam> urls can be requested without an active login
         	firstLoginMap.put(authenticationModel.getUserPrincipalName(), true);
         }
-        
+
         if(clearSession) {
             session.invalidate();
 
@@ -170,7 +168,7 @@ public class LoginController {
 
         return model;
     }
-    
+
     @RequestMapping(value = "/user/role-info", method = RequestMethod.GET)
     @ResponseBody
     public AuthenticationModel getSecurityCredentials(HttpServletRequest request /*needed for UserPrincipal*/) {

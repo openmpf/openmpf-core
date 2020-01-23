@@ -28,7 +28,6 @@ package org.mitre.mpf.mvc.controller;
 import org.mitre.mpf.mvc.model.AtmosphereChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
@@ -44,7 +43,6 @@ import java.util.HashMap;
 
 @Controller
 @Scope("request")
-@Profile("website")
 public class TimeoutController {
 
     private static final Logger log = LoggerFactory.getLogger(TimeoutController.class);
@@ -78,7 +76,7 @@ public class TimeoutController {
             response.sendError(CUSTOM_SESSION_TIMEOUT_ERROR_CODE);
             return null;
         }
-       
+
         return new ModelAndView("timeout");
     }
 }

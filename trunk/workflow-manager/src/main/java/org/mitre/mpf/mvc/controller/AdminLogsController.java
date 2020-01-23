@@ -34,7 +34,6 @@ import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -53,7 +52,6 @@ import java.util.*;
 
 @Controller
 @Scope("singleton")
-@Profile("website")
 public class AdminLogsController
 {
 	private static final Logger log = LoggerFactory.getLogger(AdminLogsController.class);
@@ -177,7 +175,7 @@ public class AdminLogsController
             for (File hostDir : logParentDir.listFiles()) {
                 // log.info("Adding {} to list of hostnames", hostDir.getName());
                 File logDir = new File(hostDir.getAbsolutePath(), "/log/");
-                
+
                 if (logDir.exists() && logDir.isDirectory()) {
                     Set<String> lognames = new TreeSet<String>();
                     Map<String, File> lognameFileMap = new HashMap<String, File>();

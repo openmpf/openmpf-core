@@ -52,7 +52,8 @@ import java.util.List;
 @Configuration
 @EnableWebMvc //NOTE: Only needed in a non-springboot application
 @EnableSwagger2
-@Profile("website") //this might help with this class breaking the mvn tests
+//@Profile("website") //this might help with this class breaking the mvn tests
+@Profile("!jenkins")
 public class SwaggerConfig {
 
     @Bean
@@ -69,7 +70,7 @@ public class SwaggerConfig {
             .build()
             // list classes to be ignored in parameters (useful for optional internal parameters)
             .ignoredParameterTypes(javax.servlet.http.HttpSession.class)
-            // opt out of auto-generated response code and their default message 
+            // opt out of auto-generated response code and their default message
             .useDefaultResponseMessages(false)
             .alternateTypeRules(AlternateTypeRules.newRule(Instant.class, String.class))
             .globalResponseMessage(RequestMethod.GET, globalResponses)

@@ -34,7 +34,6 @@ import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -51,9 +50,8 @@ import static java.util.stream.Collectors.toSet;
  // NOTE: Don't use @Scope("request") because this class should be treated as a singleton.
 @Controller
 @Scope("singleton")
-@Profile("website")
-public class AdminPropertySettingsController 
-{	
+public class AdminPropertySettingsController
+{
 	private static final Logger log = LoggerFactory.getLogger(AdminPropertySettingsController.class);
 
 	@Autowired

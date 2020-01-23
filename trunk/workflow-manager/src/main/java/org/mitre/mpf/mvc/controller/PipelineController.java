@@ -39,7 +39,6 @@ import org.mitre.mpf.wfm.service.pipeline.PipelineService;
 import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -52,7 +51,6 @@ import static java.util.stream.Collectors.toList;
 
 @Api("Pipelines")
 @Scope("request")
-@Profile("website")
 @RestController
 @RequestMapping(produces = "application/json")
 // Methods to get single pipeline element don't show up in Swagger because Swagger won't display both

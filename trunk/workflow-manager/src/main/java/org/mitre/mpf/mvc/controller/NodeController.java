@@ -43,7 +43,6 @@ import org.mitre.mpf.wfm.service.NodeManagerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -64,7 +63,6 @@ import java.util.*;
 @Api(value = "Nodes", description = "Node management")
 @Controller
 @Scope("singleton")
-@Profile("website")
 public class NodeController {
 
 	private static final Logger log = LoggerFactory.getLogger(NodeController.class);
@@ -320,14 +318,14 @@ public class NodeController {
 	public Map<String, ServiceModel> getNodeManagerServicePaletteSession()
 			throws JsonGenerationException, JsonMappingException, IOException {
 		return getNodeManagerServicePalette();
-	}	
+	}
 
 	/*
 	 * /nodes/services/{serviceName:.+}/start|stop
 	 */
 	// EXTERNAL START
 	@RequestMapping(value = "/rest/nodes/services/{serviceName:.+}/start", method = RequestMethod.POST)
-	@ApiOperation(value = "Starts the service named serviceName", notes = "This method returns a NodeServiceStatusChangeResult and a HTTP 200 status code on successful request.", 
+	@ApiOperation(value = "Starts the service named serviceName", notes = "This method returns a NodeServiceStatusChangeResult and a HTTP 200 status code on successful request.",
 	produces = "application/json", response = MpfResponse.class)
 	@ApiResponses(@ApiResponse(code = 200, message = "Successful response"))
 	public ResponseEntity<MpfResponse> startServiceRest(
@@ -350,7 +348,7 @@ public class NodeController {
 
 	// EXTERNAL STOP
 	@RequestMapping(value = "/rest/nodes/services/{serviceName:.+}/stop", method = RequestMethod.POST)
-	@ApiOperation(value = "Shuts down the service named serviceName", notes = "This method returns a NodeServiceStatusChangeResult and a HTTP 200 status code on successful request.", 
+	@ApiOperation(value = "Shuts down the service named serviceName", notes = "This method returns a NodeServiceStatusChangeResult and a HTTP 200 status code on successful request.",
 	produces = "application/json", response = MpfResponse.class)
 	@ApiResponses(@ApiResponse(code = 200, message = "Successful response"))
 	public ResponseEntity<MpfResponse> stopServiceRest(
@@ -439,7 +437,7 @@ public class NodeController {
 			mpfResponse.setResponseCode(MpfResponse.RESPONSE_CODE_SUCCESS);
 		} else {
 			// should always access the nodeManagerConfigName resource and throw
-			// an exception before getting here			
+			// an exception before getting here
 			mpfResponse.setMessage(MpfResponse.RESPONSE_CODE_ERROR,
 			                       "Failed to access the node manager config resource.");
 		}
@@ -468,7 +466,7 @@ public class NodeController {
 			} else {
 				log.error(
 						"Invalid/non-admin user with name '{}' is attempting to start or stop a service with name '{}'.",
-						authenticationModel.getUserPrincipalName(), serviceName);				
+						authenticationModel.getUserPrincipalName(), serviceName);
 				mpfResponse.setMessage(MpfResponse.RESPONSE_CODE_ERROR,
 						"Node service status not changed! You do not have the proper user privileges to make this change! Please log in as an admin user.");
 				// do not continue! - validAuth is false
@@ -535,10 +533,10 @@ public class NodeController {
 	 * @RequestMapping(value = "/nodeManager/testExceptionMAV", method =
 	 * RequestMethod.GET) public String testExceptionMAV() throws IOException {
 	 * throw new IOException(); }
-	 * 
+	 *
 	 * @RequestMapping(value = "/nodeManager/testExceptionJSON", method =
 	 * RequestMethod.GET)
-	 * 
+	 *
 	 * @ResponseBody public Object testExceptionJSON() throws IOException {
 	 * super.setJsonResponse(true); throw new IOException(); }
 	 */
