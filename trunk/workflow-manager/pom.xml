@@ -995,12 +995,12 @@
         <profile>
             <id>jenkins</id>
             <properties>
-                <tomcat.port>8181</tomcat.port>
+                <tomcat.port>8080</tomcat.port>
             </properties>
             <build>
                 <plugins>
                     <plugin>
-                        <!--you will also need to have the environmental variable DISPLAY=:99 for xvfb, and TOMCAT_BASE_URL=http://localhost:8181-->
+                        <!--you will also need to have the environmental variable DISPLAY=:99 for xvfb, and TOMCAT_BASE_URL=http://localhost:8080-->
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <version>${maven.surefire.plugin.version}</version>

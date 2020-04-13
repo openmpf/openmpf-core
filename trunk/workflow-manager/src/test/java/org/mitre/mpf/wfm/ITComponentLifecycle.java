@@ -73,9 +73,7 @@ public class ITComponentLifecycle {
     private static final ObjectMapper objectMapper = ObjectMapperFactory.customObjectMapper();
     private final int MINUTES = 60 * 1000;  // millisec
 
-    // use url with port 8080 for testing with Intellij and 8181 for running mvn verify
     private static String urlBase = "http://localhost:8080/workflow-manager/rest/";
-//    private static String urlBase = "http://localhost:8181/workflow-manager/rest/";
 
     private ClassLoader classLoader = getClass().getClassLoader();
     private String javaFilePath = classLoader.getResource("JavaTestDetection.json").getPath();
