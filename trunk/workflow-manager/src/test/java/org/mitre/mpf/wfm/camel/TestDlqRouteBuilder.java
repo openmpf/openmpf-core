@@ -69,6 +69,8 @@ public class TestDlqRouteBuilder {
 
     public static final String DUPLICATE_FROM_STORE_FAILURE_CAUSE =
             "java.lang.Throwable: duplicate from store for queue://MPF.DETECTION_DUMMY_REQUEST";
+    public static final String DUPLICATE_FROM_CURSOR_FAILURE_CAUSE =
+            "java.lang.Throwable: duplicate paged in from cursor for queue://MPF.DETECTION_DUMMY_REQUEST";
     public static final String SUPPRESSING_DUPLICATE_FAILURE_CAUSE =
             "java.lang.Throwable: Suppressing duplicate delivery on connection, consumer ID:dummy";
     public static final String OTHER_FAILURE_CAUSE = "some other failure";
@@ -334,6 +336,11 @@ public class TestDlqRouteBuilder {
     @Test
     public void dropGoodReplyToAndDupFromStoreFailure() throws Exception {
         runTest(ENTRY_POINT, SELECTOR_REPLY_TO, DUPLICATE_FROM_STORE_FAILURE_CAUSE, false, false);
+    }
+
+    @Test
+    public void dropGoodReplyToAndDupFromCursorFailure() throws Exception {
+        runTest(ENTRY_POINT, SELECTOR_REPLY_TO, DUPLICATE_FROM_CURSOR_FAILURE_CAUSE, false, false);
     }
 
     @Test

@@ -55,6 +55,7 @@ public class DlqRouteBuilder extends RouteBuilder {
 	public static final int DUPLICATE_PREFETCH_SIZE = 1500;
 
 	public static final String DUPLICATE_FROM_STORE_MESSAGE = "duplicate from store";
+	public static final String DUPLICATE_FROM_CURSOR_MESSAGE = "duplicate paged in from cursor";
 	public static final String SUPPRESSING_DUPLICATE_DELIVERY_MESSAGE = "Suppressing duplicate delivery";
 
 	private String entryPoint, exitPoint, auditExitPoint, invalidExitPoint, routeIdPrefix, selectorReplyTo;
@@ -83,6 +84,7 @@ public class DlqRouteBuilder extends RouteBuilder {
 
 		// Note that "LIKE" is case sensitive.
 		String dupCondition = DLQ_DELIVERY_FAILURE_CAUSE_PROPERTY + " LIKE '%" + DUPLICATE_FROM_STORE_MESSAGE + "%'" +
+				" OR " + DLQ_DELIVERY_FAILURE_CAUSE_PROPERTY + " LIKE '%" + DUPLICATE_FROM_CURSOR_MESSAGE + "%'" +
 				" OR " + DLQ_DELIVERY_FAILURE_CAUSE_PROPERTY + " LIKE '%" + SUPPRESSING_DUPLICATE_DELIVERY_MESSAGE + "%'";
 		String selector = "?selector=" + java.net.URLEncoder.encode(dupCondition, "UTF-8");
 

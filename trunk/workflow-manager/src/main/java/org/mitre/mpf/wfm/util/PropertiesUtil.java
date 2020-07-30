@@ -731,5 +731,9 @@ public class PropertiesUtil {
     public int getHttpCallbackTimeoutMs() {
         return mpfPropertiesConfig.getInt("http.callback.timeout.ms");
     }
+
+    public int getHttpCallbackRetryCount() {
+        return mpfPropertiesConfig.getInt("http.callback.retries");
+    }
 }
 

@@ -53,6 +53,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.stream.Collectors.toList;
 
@@ -87,6 +88,7 @@ public class CallbackUtils implements AutoCloseable {
         PoolingNHttpClientConnectionManager cm = new PoolingNHttpClientConnectionManager(ioReactor);
         cm.setDefaultMaxPerRoute(MAX_CONNECTIONS_PER_ROUTE); // default is 2
         cm.setMaxTotal(MAX_CONNECTIONS_TOTAL); // default is 20
+
 
         httpAsyncClient = HttpAsyncClients.custom().setConnectionManager(cm).build();
         httpAsyncClient.start();
@@ -142,6 +144,63 @@ public class CallbackUtils implements AutoCloseable {
             @Override
             public void failed(Exception ex) {
                 future.completeExceptionally(ex);
+            }
+
+            @Override
+            public void cancelled() {
+                future.cancel(true);
+            }
+        });
+        return future;
+    }
+
+
+    public CompletableFuture<HttpResponse> executeRequest(HttpUriRequest request, int retries) {
+        return executeRequest(request, retries, 100);
+    }
+
+
+    private CompletableFuture<HttpResponse> executeRequest(HttpUriRequest request, int retries, long delayMs) {
+        var future = ThreadUtil.<HttpResponse>newFuture();
+        log.info("Starting {} callback to {}.", request.getMethod(), request.getURI());
+
+        httpAsyncClient.execute(request, new FutureCallback<>() {
+            @Override
+            public void completed(HttpResponse response) {
+                int statusCode = response.getStatusLine().getStatusCode();
+                if ((statusCode >= 200 && statusCode <= 299) || retries <= 0) {
+                    future.complete(response);
+                    return;
+                }
+
+                log.warn("The remote server responded with a non-200 status code of {}. There are {} attempts " +
+                                 "remaining and the next attempt will begin soon.",
+                         statusCode, retries);
+                scheduleRetry();
+            }
+
+            @Override
+            public void failed(Exception ex) {
+                if (retries <= 0) {
+                    log.error(String.format(
+                            "Failed to issue %s callback to '%s'. All retry attempts exhausted.",
+                            request.getMethod(), request.getURI()), ex);
+                    future.completeExceptionally(ex);
+                    return;
+                }
+
+                log.error(String.format(
+                        "Failed to issue %s callback to '%s'. There are %s attempts remaining and " +
+                                "the next attempt will begin soon.",
+                        request.getMethod(), request.getURI(), retries), ex);
+                scheduleRetry();
+            }
+
+            private void scheduleRetry() {
+                long nextDelay = Math.min(delayMs * 2, 30_000);
+                ThreadUtil.runAsync(
+                        nextDelay, TimeUnit.MILLISECONDS,
+                        () -> executeRequest(request, retries - 1, nextDelay));
             }
 
             @Override

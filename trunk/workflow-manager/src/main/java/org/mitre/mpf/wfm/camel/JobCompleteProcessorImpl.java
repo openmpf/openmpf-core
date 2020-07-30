@@ -250,7 +250,7 @@ public class JobCompleteProcessorImpl extends WfmProcessor implements JobComplet
         try {
             HttpUriRequest request = createCallbackRequest(callbackMethod, callbackUrl,
                                                            job, outputObjectUri);
-            return callbackUtils.executeRequest(request)
+            return callbackUtils.executeRequest(request, propertiesUtil.getHttpCallbackRetryCount())
                     .thenApply(JobCompleteProcessorImpl::checkResponse);
         }
         catch (Exception e) {

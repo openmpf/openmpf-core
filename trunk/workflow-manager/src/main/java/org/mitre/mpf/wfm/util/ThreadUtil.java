@@ -44,9 +44,39 @@ public class ThreadUtil {
         });
     }
 
+    public static synchronized CustomCompletableFuture<Void> runAsync(long delay, TimeUnit unit,
+                                                                      ThrowingRunnable task) {
+        return callAsync(delay, unit, () -> {
+            task.run();
+            return null;
+        });
+    }
+
+
     public static synchronized <T> CustomCompletableFuture<T> callAsync(Callable<T> task) {
         return new CustomCompletableFuture<>(task, THREAD_POOL);
     }
+
+
+    public static synchronized <T> CustomCompletableFuture<T> callAsync(long delay, TimeUnit unit, Callable<T> task) {
+        var future = ThreadUtil.<T>newFuture();
+
+        return (CustomCompletableFuture<T>)  future.completeAsync(() -> {
+            try {
+                return task.call();
+            }
+            catch (Exception e) {
+                throw new CompletionException(e);
+            }
+
+        }, delayedExecutor(delay, unit));
+    }
+
+
+    public static synchronized Executor delayedExecutor(long delay, TimeUnit unit) {
+        return CompletableFuture.delayedExecutor(delay, unit, THREAD_POOL);
+    }
+
 
     public static <T> CustomCompletableFuture<T> newFuture() {
         return new CustomCompletableFuture<>(THREAD_POOL);
