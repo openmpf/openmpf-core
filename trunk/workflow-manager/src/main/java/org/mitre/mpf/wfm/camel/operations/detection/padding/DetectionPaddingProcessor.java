@@ -192,6 +192,12 @@ public class DetectionPaddingProcessor extends WfmProcessor {
         var newTracks = new TreeSet<Track>();
         var zeroSizeFrames = IntStream.builder();
         for (Track track : tracks) {
+            // We could end up here if speech detection is run on media of type VIDEO, and in that case, all detections
+            // in the track have size zero, so we need to simply pass these tracks through without filtering.
+            if (track.getType().equals("SPEECH")) {
+                newTracks.add(track);
+                continue;
+            }
             SortedSet<Detection> goodDetections = new TreeSet<>();
             for (Detection detection : track.getDetections()) {
                 if (detection.getWidth() == 0 && detection.getHeight() == 0) {
