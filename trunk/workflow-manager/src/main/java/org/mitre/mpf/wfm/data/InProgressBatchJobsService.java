@@ -31,6 +31,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import org.mitre.mpf.interop.JsonIssueDetails;
 import org.mitre.mpf.wfm.WfmProcessingException;
+import org.mitre.mpf.wfm.data.access.JobRequestDao;
 import org.mitre.mpf.wfm.data.entities.persistent.*;
 import org.mitre.mpf.wfm.data.entities.transients.Track;
 import org.mitre.mpf.wfm.enums.*;
@@ -63,13 +64,17 @@ public class InProgressBatchJobsService {
 
     private final Redis _redis;
 
+    private final JobRequestDao _jobRequestDao;
+
     private final Map<Long, BatchJobImpl> _jobs = new HashMap<>();
 
 
     @Inject
-    public InProgressBatchJobsService(PropertiesUtil propertiesUtil, Redis redis) {
+    public InProgressBatchJobsService(PropertiesUtil propertiesUtil, Redis redis,
+                                      JobRequestDao jobRequestDao) {
         _propertiesUtil = propertiesUtil;
         _redis = redis;
+        _jobRequestDao = jobRequestDao;
     }
 
 
@@ -212,7 +217,11 @@ public class InProgressBatchJobsService {
         var codeString = IssueCodes.toString(code);
         LOG.warn("Adding the following warning to job {}'s media {}: {} - {}", jobId, mediaId, codeString, message);
 
-        getJobImpl(jobId).addWarning(mediaId, IssueSources.toString(source), codeString, message);
+        var job = getJobImpl(jobId);
+        job.addWarning(mediaId, IssueSources.toString(source), codeString, message);
+        if (job.getStatus() != BatchJobStatusType.IN_PROGRESS_ERRORS) {
+            setJobStatus(jobId, BatchJobStatusType.IN_PROGRESS_WARNINGS);
+        }
     }
 
 
@@ -234,6 +243,7 @@ public class InProgressBatchJobsService {
         if (source != IssueSources.MARKUP && mediaId != 0) {
             getMediaImpl(jobId, mediaId).setFailed(true);
         }
+        setJobStatus(jobId, BatchJobStatusType.IN_PROGRESS_ERRORS);
     }
 
 
@@ -252,11 +262,12 @@ public class InProgressBatchJobsService {
     }
 
 
-    public synchronized void setJobStatus(long jobId, BatchJobStatusType batchJobStatusType) {
+    public synchronized void setJobStatus(long jobId, BatchJobStatusType batchJobStatus) {
         var job = getJobImpl(jobId);
-        if (job.getStatus() != batchJobStatusType) {
-            LOG.info("Setting status of job {} to {}", jobId, batchJobStatusType);
-            getJobImpl(jobId).setStatus(batchJobStatusType);
+        if (job.getStatus() != batchJobStatus) {
+            LOG.info("Setting status of job {} to {}", jobId, batchJobStatus);
+            getJobImpl(jobId).setStatus(batchJobStatus);
+            _jobRequestDao.updateStatus(jobId, batchJobStatus);
         }
     }
 

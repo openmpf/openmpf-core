@@ -36,7 +36,6 @@ import org.mitre.mpf.wfm.data.access.hibernate.HibernateMarkupResultDaoImpl;
 import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
 import org.mitre.mpf.wfm.data.entities.persistent.MarkupResult;
 import org.mitre.mpf.wfm.data.entities.persistent.Media;
-import org.mitre.mpf.wfm.enums.BatchJobStatusType;
 import org.mitre.mpf.wfm.enums.IssueCodes;
 import org.mitre.mpf.wfm.enums.IssueSources;
 import org.mitre.mpf.wfm.enums.MarkupStatus;
@@ -90,7 +89,6 @@ public class MarkupResponseProcessor extends ResponseProcessor<Markup.MarkupResp
         markupResultDao.persist(markupResult);
 
         if (markupResult.getMarkupStatus() == MarkupStatus.FAILED) {
-            inProgressJobs.setJobStatus(jobId, BatchJobStatusType.IN_PROGRESS_ERRORS);
             var errorMessage = markupResponse.hasErrorMessage()
                     ? markupResponse.getErrorMessage()
                     : "FAILED";
@@ -98,12 +96,11 @@ public class MarkupResponseProcessor extends ResponseProcessor<Markup.MarkupResp
                                     IssueSources.MARKUP);
         }
         if (markupResult.getMarkupStatus() == MarkupStatus.COMPLETE_WITH_WARNING) {
-            inProgressJobs.setJobStatus(jobId, BatchJobStatusType.IN_PROGRESS_WARNINGS);
             var warningMessage = markupResponse.hasErrorMessage()
                     ? markupResponse.getErrorMessage()
                     : "COMPLETE_WITH_WARNING";
-            inProgressJobs.addWarning(jobId, markupResult.getMediaId(), IssueCodes.MARKUP, warningMessage,
-                                      IssueSources.MARKUP);
+            inProgressJobs.addWarning(jobId, markupResult.getMediaId(), IssueCodes.MARKUP,
+                                      warningMessage, IssueSources.MARKUP);
         }
         return null;
     }

@@ -74,8 +74,8 @@ public class TestJobRequestService {
 
     private final JmsUtils _mockJmsUtils = mock(JmsUtils.class);
 
-    private final InProgressBatchJobsService _inProgressJobs = new InProgressBatchJobsService(_mockPropertiesUtil,
-                                                                                              null);
+    private final InProgressBatchJobsService _inProgressJobs = new InProgressBatchJobsService(
+            _mockPropertiesUtil, null, null);
 
     private final JobRequestDao _mockJobRequestDao = mock(JobRequestDao.class);
 
