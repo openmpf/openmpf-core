@@ -241,10 +241,10 @@ public class JobRequestServiceImpl implements JobRequestService {
             jobRequestEntity.setOutputObjectPath(null);
             jobRequestEntity.setOutputObjectVersion(null);
 
-            _inProgressJobs.setJobStatus(job.getId(), jobStatus);
             jobRequestEntity.setJob(_jsonUtils.serialize(job));
 
             jobRequestEntity = _jobRequestDao.persist(jobRequestEntity);
+            _inProgressJobs.setJobStatus(job.getId(), jobStatus);
             _jobStatusBroadcaster.broadcast(jobRequestEntity.getId(), 0, jobStatus);
             return jobRequestEntity;
         }

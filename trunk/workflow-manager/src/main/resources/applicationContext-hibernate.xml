@@ -57,7 +57,8 @@
                 <prop key="jadira.usertype.javaZone">America/New_York</prop>
                 <prop key="hibernate.dialect">org.mitre.mpf.wfm.data.EnhancedPostgreSQLDialect</prop>
                 <prop key="hibernate.jdbc.batch_size">50000</prop>
-                <prop key="hibernate.show_sql">${hibernate.show.sql:false}</prop>
+<!--                <prop key="hibernate.show_sql">${hibernate.show.sql:false}</prop>-->
+                <prop key="hibernate.show_sql">true</prop>
                 <prop key="hibernate.hbm2ddl.auto">${hibernate.update.mode:update}</prop>
                 <prop key="hibernate.cache.use_second_level_cache">true</prop>
                 <prop key="hibernate.cache.use_query_cache">true</prop>

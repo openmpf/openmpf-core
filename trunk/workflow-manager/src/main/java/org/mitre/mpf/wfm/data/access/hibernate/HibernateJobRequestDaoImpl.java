@@ -153,7 +153,7 @@ public class HibernateJobRequestDaoImpl extends AbstractHibernateDao<JobRequest>
     public void updateStatus(long jobId, BatchJobStatusType status) {
         var cb = getCurrentSession().getCriteriaBuilder();
         var update = cb.createCriteriaUpdate(JobRequest.class);
-        var root = update.getRoot();
+        var root = update.from(JobRequest.class);
 
         update.set("status", status)
                 .where(cb.equal(root.get("id"), jobId));
