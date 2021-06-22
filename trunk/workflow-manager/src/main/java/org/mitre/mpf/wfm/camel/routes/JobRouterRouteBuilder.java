@@ -29,9 +29,7 @@ package org.mitre.mpf.wfm.camel.routes;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
 import org.mitre.mpf.wfm.camel.DefaultTaskSplitter;
-import org.mitre.mpf.wfm.camel.JobCompletePredicate;
 import org.mitre.mpf.wfm.camel.JobCompleteProcessorImpl;
-import org.mitre.mpf.wfm.camel.JobStatusCalculator;
 import org.mitre.mpf.wfm.enums.MpfEndpoints;
 import org.mitre.mpf.wfm.enums.MpfHeaders;
 import org.slf4j.Logger;
@@ -68,8 +66,7 @@ public class JobRouterRouteBuilder extends RouteBuilder {
 			.routeId(routeId)
 			.setExchangePattern(ExchangePattern.InOnly)
 			.choice()
-				.when(method(JobCompletePredicate.class))
-					.setHeader(MpfHeaders.JOB_STATUS).method(JobStatusCalculator.class)
+				.when(header(MpfHeaders.JOB_COMPLETE).isEqualTo(true))
                     .process(JobCompleteProcessorImpl.REF)
 				.otherwise()
 					.split().method(DefaultTaskSplitter.REF, "split")

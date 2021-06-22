@@ -51,6 +51,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static java.util.stream.Collectors.joining;
+
 @Component
 @Singleton
 public class InProgressBatchJobsService {
@@ -88,7 +90,12 @@ public class InProgressBatchJobsService {
             throw new IllegalArgumentException(String.format("Job with id %s already exists.", jobId));
         }
 
-        LOG.info("Initializing batch job {} which will run the \"{}\" pipeline", jobId, pipeline.getName());
+        var mediaInfo = media.stream()
+                .map(m -> String.format("\"%s\" (id=%s)", m.getUri(), m.getId()))
+                .collect(joining(", "));
+
+        LOG.info("Initializing batch job {} which will run the \"{}\" pipeline on the following " +
+                         "media: {}", jobId, pipeline.getName(), mediaInfo);
         List<MediaImpl> mediaImpls = media.stream()
                 .map(MediaImpl::toMediaImpl)
                 .collect(ImmutableList.toImmutableList());
@@ -159,6 +166,10 @@ public class InProgressBatchJobsService {
                 }
             }
         }
+    }
+
+    public synchronized void clearOnInitializationError(long jobId) {
+        _jobs.remove(jobId);
     }
 
     public synchronized boolean containsJob(long jobId) {
@@ -242,8 +253,11 @@ public class InProgressBatchJobsService {
 
 
     public synchronized void setJobStatus(long jobId, BatchJobStatusType batchJobStatusType) {
-        LOG.info("Setting status of job {} to {}", jobId, batchJobStatusType);
-        getJobImpl(jobId).setStatus(batchJobStatusType);
+        var job = getJobImpl(jobId);
+        if (job.getStatus() != batchJobStatusType) {
+            LOG.info("Setting status of job {} to {}", jobId, batchJobStatusType);
+            getJobImpl(jobId).setStatus(batchJobStatusType);
+        }
     }
 
 

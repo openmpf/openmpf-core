@@ -78,17 +78,11 @@
 <mpf-navbar></mpf-navbar>
 
  <!-- IMPORTANT: do not nest container/container-fluid -->
-    <!--Because System Messages are placed "on top" of the rest of the page content,
-        we need to make 2 DOM entries for the system messages, once to display any messages to the user,
-        and then one more time to "invisibly push" the content of the page down so that the
-        system messages are not obstructing the page content.  Because the DOM is rendered the same way
-        for each "layer", this works with any number of messages of any length, and even when the window is resized. -->
 <div class="container-fluid">
 
    <div class="text-center">
         <system-notices id="systemNotices"></system-notices>
-        <system-notices id="systemNoticesHidden"></system-notices>
-    </div>
+   </div>
     <!--angular view-->
     <!-- IMPORTANT: ui-router uses ui-view instead of ng-view -->
     <!-- ui-sref is also used with ui-router rather than href -->

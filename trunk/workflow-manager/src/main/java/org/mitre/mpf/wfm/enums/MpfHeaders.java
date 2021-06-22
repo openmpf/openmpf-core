@@ -32,16 +32,12 @@ public class MpfHeaders {
 
 		CORRELATION_ID = "CorrelationId",
 
-		DEBUG = "Debug",
-
 		EMPTY_SPLIT = "EmptySplit",
 
 		JMS_PRIORITY = "JMSPriority",
 		JMS_REPLY_TO = "JMSReplyTo",
 		JOB_COMPLETE = "JobComplete",
-		JOB_CREATION_ERROR = "JobCreationError",
 		JOB_ID = "JobId",
-		JOB_STATUS = "JobStatus",
 
 		MEDIA_ID = "MediaId",
 		MEDIA_TYPE = "MediaType",

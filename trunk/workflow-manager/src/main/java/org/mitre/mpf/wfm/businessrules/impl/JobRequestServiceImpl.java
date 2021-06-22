@@ -215,47 +215,41 @@ public class JobRequestServiceImpl implements JobRequestService {
                 overriddenAlgoProps,
                 systemPropertiesSnapshot);
 
-        jobRequestEntity.setPriority(priority);
-        jobRequestEntity.setStatus(BatchJobStatusType.INITIALIZED);
-        jobRequestEntity.setTimeReceived(Instant.now());
-        jobRequestEntity.setPipeline(pipelineElements.getName());
-        jobRequestEntity.setOutputObjectPath(null);
-        jobRequestEntity.setOutputObjectVersion(null);
-        jobRequestEntity.setJob(null);
+        var jobId = jobRequestEntity.getId() > 0
+                ? jobRequestEntity.getId()
+                : _jobRequestDao.getNextId();
 
-        jobRequestEntity = _jobRequestDao.persist(jobRequestEntity);
+        BatchJob job = _inProgressJobs.addJob(
+                jobId,
+                externalId,
+                systemPropertiesSnapshot,
+                pipelineElements,
+                priority,
+                buildOutput,
+                callbackUrl,
+                callbackMethod,
+                media,
+                jobProperties,
+                overriddenAlgoProps);
 
         try {
-            _jobStatusBroadcaster.broadcast(jobRequestEntity.getId(), 0, BatchJobStatusType.INITIALIZED);
-
-            BatchJob job = _inProgressJobs.addJob(
-                    jobRequestEntity.getId(),
-                    externalId,
-                    systemPropertiesSnapshot,
-                    pipelineElements,
-                    priority,
-                    buildOutput,
-                    callbackUrl,
-                    callbackMethod,
-                    media,
-                    jobProperties,
-                    overriddenAlgoProps);
-
+            jobRequestEntity.setId(jobId);
+            jobRequestEntity.setPriority(priority);
+            jobRequestEntity.setStatus(jobStatus);
+            jobRequestEntity.setTimeReceived(Instant.now());
+            jobRequestEntity.setPipeline(pipelineElements.getName());
+            jobRequestEntity.setOutputObjectPath(null);
+            jobRequestEntity.setOutputObjectVersion(null);
 
             _inProgressJobs.setJobStatus(job.getId(), jobStatus);
-
             jobRequestEntity.setJob(_jsonUtils.serialize(job));
-            jobRequestEntity.setStatus(jobStatus);
+
             jobRequestEntity = _jobRequestDao.persist(jobRequestEntity);
-
             _jobStatusBroadcaster.broadcast(jobRequestEntity.getId(), 0, jobStatus);
-
-
             return jobRequestEntity;
         }
-        catch (WfmProcessingException e) {
-            jobRequestEntity.setStatus(BatchJobStatusType.JOB_CREATION_ERROR);
-            _jobRequestDao.persist(jobRequestEntity);
+        catch (Exception e) {
+            _inProgressJobs.clearOnInitializationError(jobId);
             throw e;
         }
     }

@@ -29,7 +29,8 @@
  * JobsCtrl
  * @constructor
  */
-var JobsCtrl = function ($scope, $log, $interval, ServerSidePush, JobsService, NotificationSvc, PropertiesSvc) {
+var JobsCtrl = function ($scope, $log, $timeout, ServerSidePush, JobsService, NotificationSvc, PropertiesSvc, SystemNotices) {
+    $.fn.dataTable.ext.errMode = 'throw';
 
     $scope.selectedJob = {};
     var jobTable = null;
@@ -43,6 +44,7 @@ var JobsCtrl = function ($scope, $log, $interval, ServerSidePush, JobsService, N
         buildJobTable();
     };
 
+    var couldNotGetJobTableMsgId = null;
 
     var buildJobTable = function () {
         if (jobTable != null) {
@@ -146,6 +148,25 @@ var JobsCtrl = function ($scope, $log, $interval, ServerSidePush, JobsService, N
             });
             jobTable.on('xhr.dt', function () {
                 tableLastUpdate = moment();
+                if (couldNotGetJobTableMsgId) {
+                    SystemNotices.remove(couldNotGetJobTableMsgId);
+                    couldNotGetJobTableMsgId = null;
+                }
+            });
+            jobTable.on('error.dt', function(){
+                tableLastUpdate = moment();
+                if (!updateConfig.broadcastEnabled && updateConfig.pollingInterval > 0) {
+                    updateLastCheckedMsg();
+                }
+                console.error(
+                    "The most recent attempt to update the jobs table failed: %o",
+                    arguments);
+                if (!couldNotGetJobTableMsgId) {
+                    couldNotGetJobTableMsgId =
+                        "The most recent attempt to update the jobs table failed.";
+                    SystemNotices.error(couldNotGetJobTableMsgId);
+                }
+                scheduleNextPoll();
             });
         }
     };
@@ -213,27 +234,51 @@ var JobsCtrl = function ($scope, $log, $interval, ServerSidePush, JobsService, N
             return;
         }
 
-        $scope.updateInfoMsg = 'Last checked at ' + tableLastUpdate.format('h:mm:ss a');
+        updateLastCheckedMsg();
         if (pollingIntervalChanged) {
             cancelPolling();
-            updateConfig.poller = $interval(pollingUpdate, updateConfig.pollingInterval);
+            scheduleNextPoll();
         }
     };
 
+    var updateLastCheckedMsg = function () {
+        $scope.updateInfoMsg = 'Last checked at ' + tableLastUpdate.format('h:mm:ss a');
+    };
+
     var pollingUpdate = function () {
+        updateConfig.poller = null;
         if (!jobTable) {
+            scheduleNextPoll();
             return;
         }
-        jobTable.ajax.reload(function() {
-            $scope.$apply(function () {
-                $scope.updateInfoMsg = 'Last checked at ' + moment().format('h:mm:ss a');
-            });
-        }, false);
+        try {
+            jobTable.ajax.reload(function () {
+                $scope.$apply(function () {
+                    tableLastUpdate = moment();
+                    updateLastCheckedMsg();
+                    scheduleNextPoll();
+                });
+            }, false);
+        }
+        catch (e) {
+            console.log('caught error: %o', e);
+            scheduleNextPoll();
+        }
+    };
+
+    var scheduleNextPoll = function () {
+        if (updateConfig.poller) {
+            // There is already a pending poll.
+            return;
+        }
+        if (!updateConfig.broadcastEnabled && updateConfig.pollingInterval > 0) {
+            updateConfig.poller = $timeout(pollingUpdate, updateConfig.pollingInterval);
+        }
     };
 
     var cancelPolling = function () {
         if (updateConfig.poller) {
-            $interval.cancel(updateConfig.poller);
+            $timeout.cancel(updateConfig.poller);
             updateConfig.poller = null;
         }
     };

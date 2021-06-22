@@ -38,13 +38,11 @@ import java.time.Instant;
 @Entity
 public class JobRequest {
 
-    /** The unique numeric identifier for this job.
-     * Using SEQUENCE rather than IDENTITY to avoid conflicts between batch and streaming job Ids
-     * */
+    /** The unique numeric identifier for this job. */
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
     private long id;
     public long getId() { return id; }
+    public void setId(long id) { this.id = id; }
 
     /** The timestamp indicating when the server received this job. */
     @Column

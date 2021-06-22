@@ -133,14 +133,12 @@ public class JobCompleteProcessorImpl extends WfmProcessor implements JobComplet
             log.warn("[Job {}:*:*] An error prevents a job from completing successfully." +
                     " Please review the logs for additional information.", jobId);
         } else {
-            String statusString = exchange.getIn().getHeader(MpfHeaders.JOB_STATUS, String.class);
-            Mutable<BatchJobStatusType> jobStatus =
-                    new MutableObject<>(BatchJobStatusType.parse(statusString, BatchJobStatusType.UNKNOWN));
-
             JobRequest jobRequest = jobRequestDao.findById(jobId);
             jobRequest.setTimeCompleted(Instant.now());
 
             BatchJob job = inProgressBatchJobs.getJob(jobId);
+            var jobStatus = new MutableObject<>(
+                    JobStatusCalculator.completionStatus(job.getStatus()));
             URI outputObjectUri = null;
             try {
                 outputObjectUri = createOutputObject(job, jobRequest.getTimeReceived(),
@@ -207,7 +205,7 @@ public class JobCompleteProcessorImpl extends WfmProcessor implements JobComplet
 
         jobStatusBroadcaster.broadcast(job.getId(), 100, jobStatus.getValue(), Instant.now());
         jobProgressStore.removeJob(job.getId());
-        log.info("[Job {}:*:*] Job complete!", job.getId());
+        log.info("[Job {}] Job complete with status: {}", job.getId(), jobStatus.getValue());
     }
 
 

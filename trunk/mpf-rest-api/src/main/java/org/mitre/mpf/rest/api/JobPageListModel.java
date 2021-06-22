@@ -31,14 +31,15 @@ import java.util.List;
 
 public class JobPageListModel {
 	private List<JobPageModel> data = new ArrayList<JobPageModel>();
-	private String draw;
+	private Integer draw;
 	private int recordsTotal = 0;
 	private int  recordsFiltered = 0;
 	private String error  = null;
 
 	public JobPageListModel() {}
 
-	public JobPageListModel(String draw, int recordsTotal, int  recordsFiltered,String error,List<JobPageModel> jobs) {
+	public JobPageListModel(Integer draw, int recordsTotal, int recordsFiltered,String error,
+	                        List<JobPageModel> jobs) {
 		this.draw = draw;
 		this.recordsTotal = recordsTotal;
 		this.recordsFiltered = recordsFiltered;
@@ -58,11 +59,11 @@ public class JobPageListModel {
 		this.data = data;
 	}
 
-	public String getDraw() {
+	public Integer getDraw() {
 		return draw;
 	}
 
-	public void setDraw(String draw) {
+	public void setDraw(Integer draw) {
 		this.draw = draw;
 	}
 

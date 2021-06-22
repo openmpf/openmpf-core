@@ -38,4 +38,6 @@ public interface JobRequestDao extends JpaDao<JobRequest> {
                                        String sortOrderDirection);
 
     public long countFiltered(String searchTerm);
+
+    public long getNextId();
 }

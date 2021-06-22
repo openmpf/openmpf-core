@@ -26,43 +26,18 @@
 
 package org.mitre.mpf.wfm.camel;
 
-import org.apache.camel.Exchange;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.mitre.mpf.interop.JsonOutputObject;
-import org.mitre.mpf.wfm.WfmProcessingException;
-import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
-import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
 import org.mitre.mpf.wfm.enums.BatchJobStatusType;
-import org.mitre.mpf.wfm.enums.MpfHeaders;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * The Job Status Calculator is a tool to calculate the terminal status of a job.
  */
-@Component(JobStatusCalculator.REF)
 public class JobStatusCalculator {
-    public static final String REF = "jobStatusCalculator";
-
-    @Autowired
-    private InProgressBatchJobsService inProgressJobs;
-
-    /**
-     * Calculates the terminal status of a batch job
-     * @param exchange  An incoming job exchange
-     * @return  The terminal JobStatus for the batch job.
-     * @throws WfmProcessingException
-     */
-    public BatchJobStatusType calculateStatus(Exchange exchange) throws WfmProcessingException {
-        BatchJob job = inProgressJobs.getJob(exchange.getIn().getHeader(MpfHeaders.JOB_ID, Long.class));
-        BatchJobStatusType initialStatus = job.getStatus();
-        BatchJobStatusType newStatus = nextStatus(initialStatus);
-        inProgressJobs.setJobStatus(job.getId(), newStatus);
-        return newStatus;
+    private JobStatusCalculator() {
     }
 
-
-    private static BatchJobStatusType nextStatus(BatchJobStatusType initialStatus) {
+    public static BatchJobStatusType completionStatus(BatchJobStatusType initialStatus) {
         switch (initialStatus) {
             case ERROR:
             case UNKNOWN:
@@ -80,7 +55,8 @@ public class JobStatusCalculator {
         }
     }
 
-    public static void checkErrorMessages(JsonOutputObject outputObject, Mutable<BatchJobStatusType> jobStatus) {
+    public static void checkErrorMessages(JsonOutputObject outputObject,
+                                          Mutable<BatchJobStatusType> jobStatus) {
         // Only update a non-terminal status, or a COMPLETE_* status.
         if (!jobStatus.getValue().isTerminal()
                 || jobStatus.getValue() == BatchJobStatusType.COMPLETE

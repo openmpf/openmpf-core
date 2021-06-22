@@ -192,7 +192,7 @@ public class JobController {
     @RequestMapping(value = {"/jobs-paged"}, method = RequestMethod.POST)
     @ResponseBody
     public JobPageListModel getJobStatusFiltered(
-            @RequestParam(value = "draw", required = false) int draw,
+            @RequestParam(value = "draw", required = false) Integer draw,
             @RequestParam(value = "start", required = false) int start,
             @RequestParam(value = "length", required = false) int length,
             @RequestParam(value = "search", required = false) String search,
@@ -212,6 +212,7 @@ public class JobController {
         int recordsTotal = (int) jobRequestDao.countAll();
 
         JobPageListModel model = new JobPageListModel();
+        model.setDraw(draw);
         // Total records, before filtering (i.e. the total number of records in the database)
         model.setRecordsTotal(recordsTotal);
         // Total records, after filtering (i.e. the total number of records after filtering has been applied -
@@ -440,10 +441,27 @@ public class JobController {
         float jobProgressVal = jobProgress.getJobProgress(job.getId())
                 .orElseGet(() -> job.getStatus().isTerminal() ? 100 : 0.0f);
 
-        var batchJob = jsonUtils.deserialize(job.getJob(), BatchJob.class);
-        var mediaUris = batchJob.getMedia().stream()
-                .map(Media::getUri)
-                .collect(toList());
+        List<String> mediaUris;
+        try {
+            // Currently, it is not possible for job.getJob() to be null, but in previous versions
+            // it was possible. We don't want the jobs page to become unusable if a user has a job
+            // from an older version.
+            if (job.getJob() == null)  {
+                log.error("Unable to determine mediaUris for job {}.", job.getId());
+                mediaUris = List.of();
+            }
+            else {
+                var batchJob = jsonUtils.deserialize(job.getJob(), BatchJob.class);
+                mediaUris = batchJob.getMedia().stream()
+                        .map(Media::getUri)
+                        .collect(toList());
+            }
+        }
+        catch (WfmProcessingException e) {
+            log.error(String.format(
+                    "Unable to determine mediaUris for job %s due to: %s", job.getId(), e), e);
+            mediaUris = List.of();
+        }
 
         return new SingleJobInfo(
                 job.getId(), job.getPipeline(), job.getPriority(), job.getStatus().toString(), jobProgressVal,

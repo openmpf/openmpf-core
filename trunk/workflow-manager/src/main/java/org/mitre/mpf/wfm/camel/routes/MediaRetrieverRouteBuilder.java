@@ -28,10 +28,12 @@ package org.mitre.mpf.wfm.camel.routes;
 
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.builder.RouteBuilder;
-import org.mitre.mpf.wfm.camel.*;
+import org.mitre.mpf.wfm.camel.JobCompleteProcessorImpl;
+import org.mitre.mpf.wfm.camel.SplitCompletedPredicate;
+import org.mitre.mpf.wfm.camel.StringCountBasedWfmAggregator;
+import org.mitre.mpf.wfm.camel.WfmAggregator;
 import org.mitre.mpf.wfm.camel.operations.mediaretrieval.RemoteMediaProcessor;
 import org.mitre.mpf.wfm.camel.operations.mediaretrieval.RemoteMediaSplitter;
-import org.mitre.mpf.wfm.enums.BatchJobStatusType;
 import org.mitre.mpf.wfm.enums.MpfEndpoints;
 import org.mitre.mpf.wfm.enums.MpfHeaders;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +75,6 @@ public class MediaRetrieverRouteBuilder extends RouteBuilder {
 			.choice()
 				.when(header(MpfHeaders.SPLITTING_ERROR).isEqualTo(Boolean.TRUE))
 					.removeHeader(MpfHeaders.SPLITTING_ERROR)
-					.setHeader(MpfHeaders.JOB_STATUS, constant(BatchJobStatusType.ERROR.name()))
                     .process(JobCompleteProcessorImpl.REF)
 				.when(header(MpfHeaders.EMPTY_SPLIT).isEqualTo(Boolean.TRUE))
 					.removeHeader(MpfHeaders.EMPTY_SPLIT)

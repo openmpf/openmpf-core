@@ -61,7 +61,7 @@
         </a>
         <ng-transclude/>
     </div>
-    <div ng-if="showPopover" class="pipelineActionContent"
+    <button ng-if="showPopover" class="pipelineActionContent"
          uib-popover-template="'algorithm.popover.html'" popover-class="pp-action"
          popover-placement="auto bottom" popover-trigger="click">
 
@@ -76,7 +76,7 @@
             <span class="pp-remove-task glyphicon glyphicon-minus-sign"></span>
         </a>
         <ng-transclude/>
-    </div>
+    </button >
     <div ng-if="arrowOut===true" class="pipelineArrowOut"></div>
     <div ng-if="arrowOut===true" class="pipelineArrowhead glyphicon glyphicon-play"></div>
 </div>

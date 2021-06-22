@@ -179,11 +179,11 @@ App.run( function( $rootScope, $state, $log, $interval, RoleService, MetadataSer
 		SystemStatus.showAllSystemMessages();
 	});
 
-	//check every 2 seconds to see if the user should be booted out
+	//check every minute to see if the user should be booted out
 	//using get metadata as the polling target
 	// replaced $timeout since it interferes with protractor, and this is equivalent
 	//	however, this should be replaced by something more elegant, perhaps with server side push
 	$interval( function() {
-		MetadataService.getMetadataNoCache()
-	}, 2000);
+		MetadataService.getMetadataNoCache();
+	}, 60000);
 } );

@@ -113,13 +113,6 @@
   background-color: white;
 }
 
-/* this is the easiest way to push the page content down when system notices are shown */
-#systemNoticesHidden {
-  margin-top: .2em;
-  font-size: 1em;
-  visibility: hidden;
-}
-
 .systemNotice-title {
   font-size: 1.2em;
   font-weight: 700;

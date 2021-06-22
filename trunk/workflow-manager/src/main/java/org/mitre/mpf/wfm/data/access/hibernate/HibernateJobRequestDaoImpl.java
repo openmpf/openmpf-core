@@ -28,6 +28,8 @@ package org.mitre.mpf.wfm.data.access.hibernate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
+import org.hibernate.engine.jdbc.dialect.internal.StandardDialectResolver;
+import org.hibernate.engine.jdbc.dialect.spi.DatabaseMetaDataDialectResolutionInfoAdapter;
 import org.mitre.mpf.wfm.data.access.JobRequestDao;
 import org.mitre.mpf.wfm.data.entities.persistent.JobRequest;
 import org.mitre.mpf.wfm.enums.BatchJobStatusType;
@@ -37,6 +39,8 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.List;
 
 @Repository
@@ -96,5 +100,22 @@ public class HibernateJobRequestDaoImpl extends AbstractHibernateDao<JobRequest>
                         + " or to_char(timeCompleted, 'YYYY-MM-DD HH24:MI:SS') like :searchTerm "
                         + orderByClause)
                 .setString("searchTerm", '%' + searchTerm.toLowerCase() + '%');
+    }
+
+
+    @Override
+    public long getNextId() {
+        return getCurrentSession().doReturningWork(connection -> {
+            var dialectResolver = new StandardDialectResolver();
+            var dialect = dialectResolver.resolveDialect(
+                    new DatabaseMetaDataDialectResolutionInfoAdapter(connection.getMetaData()));
+
+            var queryString = dialect.getSequenceNextValString("hibernate_sequence");
+            try (PreparedStatement preparedStatement = connection.prepareStatement(queryString);
+                 ResultSet resultSet = preparedStatement.executeQuery()) {
+                resultSet.next();
+                return resultSet.getLong(1);
+            }
+        });
     }
 }

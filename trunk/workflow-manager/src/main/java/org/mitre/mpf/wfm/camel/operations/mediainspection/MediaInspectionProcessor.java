@@ -193,6 +193,8 @@ public class MediaInspectionProcessor extends WfmProcessor {
             }
 
             _inProgressJobs.addMediaInspectionInfo(jobId, mediaId, sha, mediaType, mimeType, length, mediaMetadata);
+            LOG.info("[Job {}] Media with URI {} (id={}) has data type {} and mime type {}.",
+                     jobId, media.getUri(), media.getId(), media.getType(), media.getMimeType());
         } else {
             LOG.error("[Job {}|*|*] Skipping inspection of Media #{} as it is in an error state.", jobId, mediaId);
         }
