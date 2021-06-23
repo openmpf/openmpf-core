@@ -28,7 +28,6 @@ package org.mitre.mpf.wfm.camel;
 
 import org.apache.camel.Exchange;
 import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
-import org.mitre.mpf.wfm.data.access.JobRequestDao;
 import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
 import org.mitre.mpf.wfm.enums.MpfHeaders;
 import org.mitre.mpf.wfm.event.JobProgress;
@@ -45,9 +44,6 @@ public class BroadcastEnabledStringCountBasedWfmAggregator extends StringCountBa
 
     @Autowired
     private InProgressBatchJobsService inProgressBatchJobs;
-
-    @Autowired
-    private JobRequestDao hibernateJobRequestDao;
 
     @Autowired
     private JobProgress jobProgressStore;

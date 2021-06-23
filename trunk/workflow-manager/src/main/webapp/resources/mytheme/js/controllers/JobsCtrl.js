@@ -316,6 +316,18 @@ var JobsCtrl = function ($scope, $log, $timeout, ServerSidePush, JobsService, No
             }
 
             if (progress < 100) {
+                var statusCell = $('#jobStatusCell' + job.id);
+                statusCell.removeClass('label-default label-danger label-warning label-primary');
+                if (job.jobStatus === 'IN_PROGRESS_WARNINGS') {
+                    statusCell.addClass('label-warning');
+                }
+                else if (job.jobStatus === 'IN_PROGRESS_ERRORS') {
+                    statusCell.addClass('label-danger');
+                }
+                else {
+                    statusCell.addClass('label-default');
+                }
+
                 $("#jobProgress" + job.id).parent().show();
                 $("#jobProgress" + job.id).html(progress + "%");
                 $("#jobProgress" + job.id).css("width", progress + "%");
@@ -339,7 +351,11 @@ var JobsCtrl = function ($scope, $log, $timeout, ServerSidePush, JobsService, No
 
     var resubmitJob = function (job) {
         $log.debug("resubmitJob:", job);
-        $("#jobStatusCell" + job.jobId).html("RESUBMITTING");
+        var statusCell = $("#jobStatusCell" + job.jobId);
+        statusCell.html("RESUBMITTING");
+        statusCell.removeClass('label-danger label-warning label-primary');
+        statusCell.addClass('label-default');
+
         $("#resubmitBtn" + job.jobId).attr("disabled", "disabled");
         JobsService.resubmitJob(job.jobId, job.jobPriority).then(function (resp) {
             if (resp && resp.hasOwnProperty("mpfResponse") &&

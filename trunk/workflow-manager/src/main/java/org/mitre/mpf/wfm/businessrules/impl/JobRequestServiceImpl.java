@@ -245,7 +245,6 @@ public class JobRequestServiceImpl implements JobRequestService {
 
             jobRequestEntity = _jobRequestDao.persist(jobRequestEntity);
             _inProgressJobs.setJobStatus(job.getId(), jobStatus);
-            _jobStatusBroadcaster.broadcast(jobRequestEntity.getId(), 0, jobStatus);
             return jobRequestEntity;
         }
         catch (Exception e) {

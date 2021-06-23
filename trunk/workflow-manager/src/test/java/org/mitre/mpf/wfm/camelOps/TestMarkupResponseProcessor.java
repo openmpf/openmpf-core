@@ -39,10 +39,7 @@ import org.mitre.mpf.wfm.data.entities.persistent.MarkupResult;
 import org.mitre.mpf.wfm.data.entities.persistent.Media;
 import org.mitre.mpf.wfm.data.entities.persistent.MediaImpl;
 import org.mitre.mpf.wfm.data.entities.persistent.JobPipelineElements;
-import org.mitre.mpf.wfm.enums.BatchJobStatusType;
-import org.mitre.mpf.wfm.enums.MarkupStatus;
-import org.mitre.mpf.wfm.enums.MpfHeaders;
-import org.mitre.mpf.wfm.enums.UriScheme;
+import org.mitre.mpf.wfm.enums.*;
 import org.mitre.mpf.wfm.service.StorageService;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
@@ -103,7 +100,8 @@ public class TestMarkupResponseProcessor {
         assertEquals(MarkupStatus.FAILED, markupResult.getMarkupStatus());
 
         verify(_mockInProgressJobs)
-                .setJobStatus(TEST_JOB_ID, BatchJobStatusType.IN_PROGRESS_ERRORS);
+                .addError(TEST_JOB_ID, 1532, IssueCodes.MARKUP, errorMessage,
+                          IssueSources.MARKUP);
     }
 
 
@@ -122,7 +120,8 @@ public class TestMarkupResponseProcessor {
         assertEquals(MarkupStatus.COMPLETE_WITH_WARNING, markupResult.getMarkupStatus());
 
         verify(_mockInProgressJobs)
-                .setJobStatus(TEST_JOB_ID, BatchJobStatusType.IN_PROGRESS_WARNINGS);
+                .addWarning(TEST_JOB_ID, 1532, IssueCodes.MARKUP, "COMPLETE_WITH_WARNING",
+                            IssueSources.MARKUP);
     }
 
 

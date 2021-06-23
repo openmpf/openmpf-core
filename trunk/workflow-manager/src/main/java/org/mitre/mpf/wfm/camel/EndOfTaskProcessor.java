@@ -30,7 +30,6 @@ import org.apache.camel.Exchange;
 import org.mitre.mpf.wfm.WfmProcessingException;
 import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
 import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
-import org.mitre.mpf.wfm.enums.BatchJobStatusType;
 import org.mitre.mpf.wfm.enums.MpfHeaders;
 import org.mitre.mpf.wfm.event.JobProgress;
 import org.mitre.mpf.wfm.service.JobStatusBroadcaster;
@@ -38,8 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.time.Instant;
 
 @Component(EndOfTaskProcessor.REF)
 public class EndOfTaskProcessor extends WfmProcessor {
@@ -68,19 +65,9 @@ public class EndOfTaskProcessor extends WfmProcessor {
                  job.getPipelineElements().getTaskCount());
 
 
-        if(job.getCurrentTaskIndex() >= job.getPipelineElements().getTaskCount()) {
-            //notify of completion - use
-            if(!job.isOutputEnabled()) {
-                jobStatusBroadcaster.broadcast(
-                        jobId,
-                        100,
-                        job.isCancelled() ? BatchJobStatusType.CANCELLED : BatchJobStatusType.COMPLETE,
-                        Instant.now());
-                jobProgressStore.setJobProgress(jobId, 100.0f);
-            } else {
-                jobStatusBroadcaster.broadcast(jobId, 99, BatchJobStatusType.BUILDING_OUTPUT_OBJECT, Instant.now());
-                jobProgressStore.setJobProgress(jobId, 99.0f);
-            }
+        if (job.getCurrentTaskIndex() >= job.getPipelineElements().getTaskCount()) {
+            jobProgressStore.setJobProgress(jobId, 99.0f);
+            jobStatusBroadcaster.broadcast(jobId, job.getStatus());
             log.debug("[Job {}|*|*] All tasks have completed. Setting the {} flag.", jobId, MpfHeaders.JOB_COMPLETE);
             exchange.getOut().setHeader(MpfHeaders.JOB_COMPLETE, Boolean.TRUE);
         }

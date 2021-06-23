@@ -163,10 +163,12 @@ public class JobCompleteProcessorImpl extends WfmProcessor implements JobComplet
                 jobStatus.setValue(BatchJobStatusType.ERROR);
             }
 
-            inProgressBatchJobs.setJobStatus(jobId, jobStatus.getValue());
+            jobProgressStore.setJobProgress(jobId, 100);
+            inProgressBatchJobs.setJobStatusNoBroadcast(jobId, jobStatus.getValue());
             jobRequest.setStatus(jobStatus.getValue());
             jobRequest.setJob(jsonUtils.serialize(job));
             jobRequestDao.persist(jobRequest);
+            jobStatusBroadcaster.broadcast(jobId, 100, BatchJobStatusType.COMPLETE);
 
             IoUtils.deleteEmptyDirectoriesRecursively(propertiesUtil.getJobMarkupDirectory(jobId).toPath());
             IoUtils.deleteEmptyDirectoriesRecursively(propertiesUtil.getJobArtifactsDirectory(jobId).toPath());
@@ -222,7 +224,7 @@ public class JobCompleteProcessorImpl extends WfmProcessor implements JobComplet
             }
         }
 
-        jobStatusBroadcaster.broadcast(job.getId(), 100, jobStatus.getValue(), Instant.now());
+//        jobStatusBroadcaster.broadcast(job.getId(), 100, jobStatus.getValue(), Instant.now());
         jobProgressStore.removeJob(job.getId());
         log.info("[Job {}] Job complete with status: {}", job.getId(), jobStatus.getValue());
     }

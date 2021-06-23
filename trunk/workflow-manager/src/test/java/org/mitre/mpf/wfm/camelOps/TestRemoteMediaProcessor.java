@@ -38,13 +38,12 @@ import org.mitre.mpf.wfm.camel.operations.mediaretrieval.RemoteMediaSplitter;
 import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
 import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
 import org.mitre.mpf.wfm.data.entities.persistent.MediaImpl;
-import org.mitre.mpf.wfm.enums.BatchJobStatusType;
 import org.mitre.mpf.wfm.enums.IssueCodes;
 import org.mitre.mpf.wfm.enums.MpfHeaders;
 import org.mitre.mpf.wfm.enums.UriScheme;
+import org.mitre.mpf.wfm.service.WorkflowPropertyService;
 import org.mitre.mpf.wfm.util.AggregateJobPropertiesUtil;
 import org.mitre.mpf.wfm.util.PropertiesUtil;
-import org.mitre.mpf.wfm.service.WorkflowPropertyService;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -167,8 +166,6 @@ public class TestRemoteMediaProcessor {
         assertEquals("Job ID headers must be set.", jobId, exchange.getOut().getHeader(MpfHeaders.JOB_ID));
         assertTrue(media.isFailed());
 
-        verify(_mockInProgressJobs)
-                .setJobStatus(jobId, BatchJobStatusType.IN_PROGRESS_ERRORS);
         verify(_mockInProgressJobs)
                 .addError(eq(jobId), eq(mediaId), eq(IssueCodes.REMOTE_STORAGE_DOWNLOAD), nonBlank());
 

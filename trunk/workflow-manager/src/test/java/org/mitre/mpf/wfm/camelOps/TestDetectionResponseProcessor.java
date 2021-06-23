@@ -219,8 +219,6 @@ public class TestDetectionResponseProcessor {
         processVideoJob(error);
 
         verify(inProgressJobs, times(1))
-                .setJobStatus(JOB_ID, BatchJobStatusType.IN_PROGRESS_ERRORS);
-        verify(inProgressJobs, times(1))
                 .addDetectionProcessingError(detectionProcessingError(JOB_ID, error, START_FRAME, STOP_FRAME,
                         START_TIME, STOP_TIME));
         verify(inProgressJobs, never())
@@ -233,8 +231,6 @@ public class TestDetectionResponseProcessor {
 
         processVideoJob(error);
 
-        verify(inProgressJobs, times(1))
-                .setJobStatus(JOB_ID, BatchJobStatusType.CANCELLING);
         verify(inProgressJobs, times(1))
                 .addDetectionProcessingError(detectionProcessingError(JOB_ID, error, START_FRAME, STOP_FRAME,
                         START_TIME, STOP_TIME));
@@ -289,8 +285,6 @@ public class TestDetectionResponseProcessor {
         detectionResponseProcessor.wfmProcess(exchange);
 
         verify(inProgressJobs, times(1))
-                .setJobStatus(JOB_ID, BatchJobStatusType.IN_PROGRESS_ERRORS);
-        verify(inProgressJobs, times(1))
                 .addDetectionProcessingError(detectionProcessingError(JOB_ID, error, 0, 0, START_TIME, STOP_TIME));
         verify(inProgressJobs, never())
                 .addJobWarning(eq(JOB_ID), any(), any());
@@ -319,8 +313,6 @@ public class TestDetectionResponseProcessor {
         detectionResponseProcessor.wfmProcess(exchange);
 
         verify(inProgressJobs, times(1))
-                .setJobStatus(JOB_ID, BatchJobStatusType.IN_PROGRESS_ERRORS);
-        verify(inProgressJobs, times(1))
                 .addDetectionProcessingError(detectionProcessingError(JOB_ID, error, 0, 1, 0 ,0));
         verify(inProgressJobs, never())
                 .addJobWarning(eq(JOB_ID), any(), any());
@@ -348,8 +340,6 @@ public class TestDetectionResponseProcessor {
 
         detectionResponseProcessor.wfmProcess(exchange);
 
-        verify(inProgressJobs, times(1))
-                .setJobStatus(JOB_ID, BatchJobStatusType.IN_PROGRESS_ERRORS);
         verify(inProgressJobs, times(1))
                 .addDetectionProcessingError(detectionProcessingError(JOB_ID, error, 0, 0, 0, 0));
         verify(inProgressJobs, never())

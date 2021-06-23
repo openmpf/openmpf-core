@@ -31,6 +31,7 @@ import org.mitre.mpf.mvc.controller.AtmosphereController;
 import org.mitre.mpf.mvc.model.JobStatusMessage;
 import org.mitre.mpf.wfm.enums.BatchJobStatusType;
 import org.mitre.mpf.wfm.enums.StreamingJobStatusType;
+import org.mitre.mpf.wfm.event.JobProgress;
 import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.springframework.stereotype.Service;
 
@@ -42,11 +43,19 @@ public class JobStatusBroadcaster {
 
     private final PropertiesUtil _propertiesUtil;
 
+    private final JobProgress _jobProgress;
+
     @Inject
-    JobStatusBroadcaster(PropertiesUtil propertiesUtil) {
+    JobStatusBroadcaster(PropertiesUtil propertiesUtil, JobProgress jobProgress) {
         _propertiesUtil = propertiesUtil;
+        _jobProgress = jobProgress;
     }
 
+    public void broadcast(long jobId, BatchJobStatusType jobStatus) {
+        var progress = _jobProgress.getJobProgress(jobId)
+                .orElseGet(() -> jobStatus.isTerminal() ? 100.0f : 0.0f);
+        broadcast(jobId, progress, jobStatus, null);
+    }
 
     public void broadcast(long jobId, double progress, BatchJobStatusType jobStatus) {
         broadcast(jobId, progress, jobStatus, null);

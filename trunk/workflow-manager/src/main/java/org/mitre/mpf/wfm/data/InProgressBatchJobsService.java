@@ -35,6 +35,7 @@ import org.mitre.mpf.wfm.data.access.JobRequestDao;
 import org.mitre.mpf.wfm.data.entities.persistent.*;
 import org.mitre.mpf.wfm.data.entities.transients.Track;
 import org.mitre.mpf.wfm.enums.*;
+import org.mitre.mpf.wfm.service.JobStatusBroadcaster;
 import org.mitre.mpf.wfm.util.FrameTimeInfo;
 import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.slf4j.Logger;
@@ -66,15 +67,19 @@ public class InProgressBatchJobsService {
 
     private final JobRequestDao _jobRequestDao;
 
+    private final JobStatusBroadcaster _jobStatusBroadcaster;
+
     private final Map<Long, BatchJobImpl> _jobs = new HashMap<>();
 
 
     @Inject
     public InProgressBatchJobsService(PropertiesUtil propertiesUtil, Redis redis,
-                                      JobRequestDao jobRequestDao) {
+                                      JobRequestDao jobRequestDao,
+                                      JobStatusBroadcaster jobStatusBroadcaster) {
         _propertiesUtil = propertiesUtil;
         _redis = redis;
         _jobRequestDao = jobRequestDao;
+        _jobStatusBroadcaster = jobStatusBroadcaster;
     }
 
 
@@ -254,6 +259,13 @@ public class InProgressBatchJobsService {
 
         var media = getMediaImpl(error.getJobId(), error.getMediaId());
         media.setFailed(true);
+
+        if (error.getErrorCode().equals(MpfConstants.REQUEST_CANCELLED)) {
+            setJobStatus(error.getJobId(), BatchJobStatusType.CANCELLING);
+        }
+        else {
+            setJobStatus(error.getJobId(), BatchJobStatusType.IN_PROGRESS_ERRORS);
+        }
     }
 
 
@@ -263,12 +275,22 @@ public class InProgressBatchJobsService {
 
 
     public synchronized void setJobStatus(long jobId, BatchJobStatusType batchJobStatus) {
-        var job = getJobImpl(jobId);
-        if (job.getStatus() != batchJobStatus) {
-            LOG.info("Setting status of job {} to {}", jobId, batchJobStatus);
-            getJobImpl(jobId).setStatus(batchJobStatus);
-            _jobRequestDao.updateStatus(jobId, batchJobStatus);
+        if (setJobStatusNoBroadcast(jobId, batchJobStatus)) {
+            _jobStatusBroadcaster.broadcast(jobId, batchJobStatus);
         }
+    }
+
+
+    public synchronized boolean setJobStatusNoBroadcast(long jobId,
+                                                        BatchJobStatusType batchJobStatus) {
+        var job = getJobImpl(jobId);
+        if (job.getStatus() == batchJobStatus) {
+            return false;
+        }
+        LOG.info("Setting status of job {} to {}", jobId, batchJobStatus);
+        job.setStatus(batchJobStatus);
+        _jobRequestDao.updateStatus(jobId, batchJobStatus);
+        return true;
     }
 
 
