@@ -416,66 +416,60 @@ public class JobCompleteProcessorImpl extends WfmProcessor implements JobComplet
 
                     Collection<Track> tracks = inProgressBatchJobs.getTracks(jobId, media.getId(),
                                                                              taskIndex, actionIndex);
-                    if (tracks.isEmpty()
-                            && !tasksToSuppress.contains(taskIndex)
-                            && !tasksToMerge.contains(taskIndex)) {
-                        trackCounter.set(media.getId(), taskIndex, actionIndex, "NO_TRACKS", 0);
-                    }
 
-                    if (tracks.isEmpty()) {
-                        // Always include detection actions in the output object, even if they do not generate any results.
-                        addMissingTrackInfo(JsonActionOutputObject.NO_TRACKS_TYPE, stateKey,
-                                action.getAlgorithm(), mediaOutputObject);
-                    }
-                    else if (tasksToSuppress.contains(taskIndex)) {
-                        addMissingTrackInfo(JsonActionOutputObject.TRACKS_SUPPRESSED_TYPE, stateKey,
-                                action.getAlgorithm(), mediaOutputObject);
-                    }
-                    else if (tasksToMerge.contains(taskIndex + 1)) {
+                    if (tasksToMerge.contains(taskIndex + 1)) {
                         // This task will be merged with the next one.
+                        // Retain the original algorithm in the JSON output object.
                         addMissingTrackInfo(JsonActionOutputObject.TRACKS_MERGED_TYPE, stateKey,
                                 action.getAlgorithm(), mediaOutputObject);
                     }
                     else {
-                        for (Track track : tracks) {
-                            String type;
-                            String algo;
-                            // tasksToMerge will never contain task 0, so the initial null values of
-                            // prevUnmergedTaskType and prevUnmergedAlgorithm are never used.
-                            if (tasksToMerge.contains(taskIndex)) {
-                                type = prevUnmergedTaskType;
-                                algo = prevUnmergedAlgorithm;
-                                trackCounter.set(media.getId(), taskIndex - 1, 0,
-                                                 type, tracks.size());
-                            }
-                            else {
-                                type = track.getType();
-                                algo = action.getAlgorithm();
-                                trackCounter.set(media.getId(), taskIndex, actionIndex,
-                                                 type, tracks.size());
-                            }
+                        // tasksToMerge will never contain task 0, so the initial null values of
+                        // prevUnmergedTaskType and prevUnmergedAlgorithm are never used.
+                        String type = tasksToMerge.contains(taskIndex) ? prevUnmergedTaskType :
+                                tracks.stream()
+                                        .findFirst().map(Track::getType).orElse(JsonActionOutputObject.NO_TRACKS_TYPE);
+                        String algo = tasksToMerge.contains(taskIndex) ? prevUnmergedAlgorithm :
+                                action.getAlgorithm();
 
-                            JsonTrackOutputObject jsonTrackOutputObject
-                                    = createTrackOutputObject(track, stateKey, type, action, media, job);
+                        if (tasksToSuppress.contains(taskIndex)) {
+                            addMissingTrackInfo(JsonActionOutputObject.TRACKS_SUPPRESSED_TYPE, stateKey,
+                                    algo, mediaOutputObject);
+                        }
+                        else {
+                            // Update the track counter in case we post to TiesDb.
+                            trackCounter.set(media.getId(), taskIndex, actionIndex, algo, type, tracks.size());
 
-                            if (!mediaOutputObject.getDetectionTypes().containsKey(type)) {
-                                mediaOutputObject.getDetectionTypes().put(type, new TreeSet<>());
-                            }
+                            if (tracks.isEmpty()) {
+                                // Always include detection actions in the output object, even if they do not generate
+                                // any results.
+                                addMissingTrackInfo(JsonActionOutputObject.NO_TRACKS_TYPE, stateKey, algo,
+                                        mediaOutputObject);
+                            } else {
+                                for (Track track : tracks) {
+                                    JsonTrackOutputObject jsonTrackOutputObject
+                                            = createTrackOutputObject(track, stateKey, type, action, media, job);
 
-                            SortedSet<JsonActionOutputObject> actionSet =
-                                    mediaOutputObject.getDetectionTypes().get(type);
-                            boolean stateFound = false;
-                            for (JsonActionOutputObject jsonAction : actionSet) {
-                                if (stateKey.equals(jsonAction.getSource())) {
-                                    stateFound = true;
-                                    jsonAction.getTracks().add(jsonTrackOutputObject);
-                                    break;
+                                    if (!mediaOutputObject.getDetectionTypes().containsKey(type)) {
+                                        mediaOutputObject.getDetectionTypes().put(type, new TreeSet<>());
+                                    }
+
+                                    SortedSet<JsonActionOutputObject> actionSet =
+                                            mediaOutputObject.getDetectionTypes().get(type);
+                                    boolean stateFound = false;
+                                    for (JsonActionOutputObject jsonAction : actionSet) {
+                                        if (stateKey.equals(jsonAction.getSource())) {
+                                            stateFound = true;
+                                            jsonAction.getTracks().add(jsonTrackOutputObject);
+                                            break;
+                                        }
+                                    }
+                                    if (!stateFound) {
+                                        JsonActionOutputObject jsonAction = new JsonActionOutputObject(stateKey, algo);
+                                        actionSet.add(jsonAction);
+                                        jsonAction.getTracks().add(jsonTrackOutputObject);
+                                    }
                                 }
-                            }
-                            if (!stateFound) {
-                                JsonActionOutputObject jsonAction = new JsonActionOutputObject(stateKey, algo);
-                                actionSet.add(jsonAction);
-                                jsonAction.getTracks().add(jsonTrackOutputObject);
                             }
                         }
                     }

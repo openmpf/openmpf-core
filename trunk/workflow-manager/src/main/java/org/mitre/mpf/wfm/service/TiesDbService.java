@@ -128,10 +128,12 @@ public class TiesDbService {
             TrackCountEntry trackCountEntry,
             String tiesDbUrl) {
 
+        String trackType = trackCountEntry.getTrackType().replace(' ', '_');
+
         var dataObject = Map.ofEntries(
                 Map.entry("pipeline", jobPart.getPipeline().getName()),
-                Map.entry("algorithm", jobPart.getAlgorithm().getName()),
-                Map.entry("outputType", trackCountEntry.getTrackType()),
+                Map.entry("algorithm", trackCountEntry.getAlgorithm()),
+                Map.entry("outputType", trackType),
                 Map.entry("jobId", jobPart.getJob().getId()),
                 Map.entry("outputUri", outputObjectLocation.toString()),
                 Map.entry("sha256OutputHash", outputObjectSha),
@@ -149,7 +151,7 @@ public class TiesDbService {
 
         var assertion = Map.of(
                 "assertionId", assertionId,
-                "informationType", "OpenMPF_" + trackCountEntry.getTrackType(),
+                "informationType", "OpenMPF_" + trackType,
                 "securityTag", "UNCLASSIFIED",
                 "system", "OpenMPF",
                 "dataObject", dataObject);

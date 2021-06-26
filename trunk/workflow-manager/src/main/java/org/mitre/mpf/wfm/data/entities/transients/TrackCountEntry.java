@@ -35,14 +35,17 @@ public class TrackCountEntry {
 
     private final int _actionIdx;
 
+    private final String _algorithm; // might not match what's in the action if performing task merging
+
     private final String _trackType;
 
     private final int _count;
 
-    public TrackCountEntry(long mediaId, int taskIdx, int actionIdx, String trackType, int count) {
+    public TrackCountEntry(long mediaId, int taskIdx, int actionIdx, String algorithm, String trackType, int count) {
         _mediaId = mediaId;
         _taskIdx = taskIdx;
         _actionIdx = actionIdx;
+        _algorithm = algorithm;
         _trackType = trackType;
         _count = count;
     }
@@ -57,6 +60,10 @@ public class TrackCountEntry {
 
     public int getActionIdx() {
         return _actionIdx;
+    }
+
+    public String getAlgorithm() {
+        return _algorithm;
     }
 
     public String getTrackType() {

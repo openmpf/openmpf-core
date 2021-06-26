@@ -39,8 +39,8 @@ public class TrackCounter {
         return Optional.ofNullable(_counts.get(new TrackCountKey(mediaId, taskIdx, actionIdx)));
     }
 
-    public void set(long mediaId, int taskIdx, int actionIdx, String trackType, int count) {
+    public void set(long mediaId, int taskIdx, int actionIdx, String algorithm, String trackType, int count) {
         _counts.put(new TrackCountKey(mediaId, taskIdx, actionIdx),
-                    new TrackCountEntry(mediaId, taskIdx, actionIdx, trackType, count));
+                    new TrackCountEntry(mediaId, taskIdx, actionIdx, algorithm, trackType, count));
     }
 }
