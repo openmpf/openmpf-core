@@ -42,7 +42,6 @@ import org.mitre.mpf.wfm.buffers.Markup;
 import org.mitre.mpf.wfm.data.IdGenerator;
 import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
 import org.mitre.mpf.wfm.data.access.MarkupResultDao;
-import org.mitre.mpf.wfm.data.access.hibernate.HibernateMarkupResultDaoImpl;
 import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
 import org.mitre.mpf.wfm.data.entities.persistent.JobPipelineElements;
 import org.mitre.mpf.wfm.data.entities.persistent.Media;
@@ -57,7 +56,6 @@ import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
@@ -78,7 +76,6 @@ public class MarkupSplitter {
     private PropertiesUtil propertiesUtil;
 
     @Autowired
-    @Qualifier(HibernateMarkupResultDaoImpl.REF)
     private MarkupResultDao hibernateMarkupResultDao;
 
     @Autowired

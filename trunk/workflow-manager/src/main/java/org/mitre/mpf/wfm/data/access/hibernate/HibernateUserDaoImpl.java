@@ -26,31 +26,32 @@
 
 package org.mitre.mpf.wfm.data.access.hibernate;
 
-import org.mitre.mpf.wfm.data.entities.persistent.User;
 import org.mitre.mpf.wfm.data.access.UserDao;
+import org.mitre.mpf.wfm.data.entities.persistent.User;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
-@Repository(HibernateUserDaoImpl.REF)
+@Repository
 @Transactional(propagation = Propagation.REQUIRED)
 public class HibernateUserDaoImpl extends AbstractHibernateDao<User> implements UserDao {
-    public static final String REF = "hibernateUserDaoImpl";
 
     public HibernateUserDaoImpl() {
-        this.setClass(User.class);
+        super(User.class);
     }
 
+    @Override
     public User findByUserName(final String userName) {
-        List<User> users = (List<User>) getCurrentSession()
-                .createQuery("from User as u where u.userName=:username")
-                .setParameter("username", userName)
-                .list();
-        if (users.size() > 0) {
-            return users.get(0);
-        }
-        return null;
+        var cb = getCriteriaBuilder();
+        var query = cb.createQuery(User.class);
+        var root = query.from(User.class);
+
+        query.where(cb.equal(root.get("userName"), userName));
+
+        return buildQuery(query)
+                .list()
+                .stream()
+                .findFirst()
+                .orElse(null);
     }
 }

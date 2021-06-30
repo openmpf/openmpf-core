@@ -26,7 +26,6 @@
 
 package org.mitre.mpf.wfm.data.access.hibernate;
 
-import org.hibernate.Query;
 import org.mitre.mpf.wfm.data.access.StreamingJobRequestDao;
 import org.mitre.mpf.wfm.data.entities.persistent.StreamingJobRequest;
 import org.mitre.mpf.wfm.enums.StreamingJobStatusType;
@@ -37,26 +36,35 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-@Repository(HibernateStreamingJobRequestDaoImpl.REF)
+@Repository
 @Transactional(propagation = Propagation.REQUIRED)
 @Profile("!docker")
-public class HibernateStreamingJobRequestDaoImpl extends AbstractHibernateDao<StreamingJobRequest> implements StreamingJobRequestDao {
-	private static final Logger log = LoggerFactory.getLogger(HibernateStreamingJobRequestDaoImpl.class);
+public class HibernateStreamingJobRequestDaoImpl
+        extends AbstractHibernateDao<StreamingJobRequest> implements StreamingJobRequestDao {
 
-	public static final String REF = "hibernateStreamingJobRequestDaoImpl";
-	public HibernateStreamingJobRequestDaoImpl() { this.clazz = StreamingJobRequest.class; }
+    private static final Logger log = LoggerFactory.getLogger(
+            HibernateStreamingJobRequestDaoImpl.class);
 
-	@Override
-	public void cancelJobsInNonTerminalState() {
-		log.info("Marking any remaining running streaming jobs as CANCELLED_BY_SHUTDOWN.");
-		Query query = getCurrentSession().
-				createQuery("UPDATE StreamingJobRequest set status = :status, status_detail = :statusDetail where status in (:nonTerminalStatuses)");
-		query.setParameter("status", StreamingJobStatusType.CANCELLED_BY_SHUTDOWN);
-		query.setParameter("statusDetail", "Job cancelled due to Workflow Manager shutdown.");
-		query.setParameterList("nonTerminalStatuses", StreamingJobStatusType.getNonTerminalStatuses());
-		int updatedRows = query.executeUpdate();
-		if ( updatedRows >= 0 ) {
-			log.warn("{} streaming jobs were in a non-terminal state and have been marked as {}", updatedRows, StreamingJobStatusType.CANCELLED_BY_SHUTDOWN);
-		}
-	}
+    public HibernateStreamingJobRequestDaoImpl() {
+        super(StreamingJobRequest.class);
+    }
+
+    @Override
+    public void cancelJobsInNonTerminalState() {
+        log.info("Marking any remaining running streaming jobs as CANCELLED_BY_SHUTDOWN.");
+
+        var cb = getCriteriaBuilder();
+        var update = cb.createCriteriaUpdate(StreamingJobRequest.class);
+        var root = update.from(StreamingJobRequest.class);
+
+        update.set("status", StreamingJobStatusType.CANCELLED_BY_SHUTDOWN)
+                .set("statusDetail", "Job cancelled due to Workflow Manager shutdown.")
+                .where(root.get("status").in(StreamingJobStatusType.getNonTerminalStatuses()));
+
+        var numRowsUpdated = executeUpdate(update);
+        if (numRowsUpdated > 0) {
+            log.warn("{} streaming jobs were in a non-terminal state and have been marked as {}",
+                     numRowsUpdated, StreamingJobStatusType.CANCELLED_BY_SHUTDOWN);
+        }
+    }
 }

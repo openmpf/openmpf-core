@@ -27,7 +27,6 @@
 package org.mitre.mpf.wfm.data.access.hibernate;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Query;
 import org.hibernate.engine.jdbc.dialect.internal.StandardDialectResolver;
 import org.hibernate.engine.jdbc.dialect.spi.DatabaseMetaDataDialectResolutionInfoAdapter;
 import org.mitre.mpf.wfm.data.access.JobRequestDao;
@@ -53,18 +52,24 @@ import java.util.function.Function;
 public class HibernateJobRequestDaoImpl extends AbstractHibernateDao<JobRequest> implements JobRequestDao {
     private static final Logger LOG = LoggerFactory.getLogger(HibernateJobRequestDaoImpl.class);
 
-    public HibernateJobRequestDaoImpl() { this.clazz = JobRequest.class; }
+    public HibernateJobRequestDaoImpl() {
+        super(JobRequest.class);
+    }
+
 
     @Override
     public void cancelJobsInNonTerminalState() {
-        Query query = getCurrentSession().
-                createQuery("UPDATE JobRequest set status = :newStatus where status in (:nonTerminalStatuses)");
-        query.setParameter("newStatus", BatchJobStatusType.CANCELLED_BY_SHUTDOWN);
-        query.setParameterList("nonTerminalStatuses", BatchJobStatusType.getNonTerminalStatuses());
-        int updatedRows = query.executeUpdate();
-        if(updatedRows >= 0) {
+        var update = getCriteriaBuilder().createCriteriaUpdate(JobRequest.class);
+        var root = update.from(JobRequest.class);
+
+        var nonTerminalStatuses = BatchJobStatusType.getNonTerminalStatuses();
+        update.set("status", BatchJobStatusType.CANCELLED_BY_SHUTDOWN)
+                .where(root.get("status").in(nonTerminalStatuses));
+
+        int numRowsUpdated = executeUpdate(update);
+        if (numRowsUpdated > 0) {
             LOG.warn("{} jobs were in a non-terminal state and have been marked as {}",
-                     updatedRows, BatchJobStatusType.CANCELLED_BY_SHUTDOWN);
+                     numRowsUpdated, BatchJobStatusType.CANCELLED_BY_SHUTDOWN);
         }
     }
 
@@ -75,11 +80,9 @@ public class HibernateJobRequestDaoImpl extends AbstractHibernateDao<JobRequest>
                                        String searchTerm,
                                        String sortColumn,
                                        String sortOrderDirection) {
-        var cb = getCurrentSession().getCriteriaBuilder();
+        var cb = getCriteriaBuilder();
         var query = cb.createQuery(JobRequest.class);
         var root = query.from(JobRequest.class);
-
-        query.select(root);
 
         if (!StringUtils.isBlank(searchTerm)) {
             query.where(createSearchFilter(searchTerm, cb, root));
@@ -92,7 +95,7 @@ public class HibernateJobRequestDaoImpl extends AbstractHibernateDao<JobRequest>
             query.orderBy(cb.asc(root.get(sortColumn)));
         }
 
-        return getCurrentSession().createQuery(query)
+        return buildQuery(query)
                 .setFirstResult(offset)
                 .setMaxResults(pageSize)
                 .list();
@@ -101,14 +104,14 @@ public class HibernateJobRequestDaoImpl extends AbstractHibernateDao<JobRequest>
 
     @Override
     public long countFiltered(String searchTerm) {
-        var cb = getCurrentSession().getCriteriaBuilder();
+        var cb = getCriteriaBuilder();
         var query = cb.createQuery(Long.class);
         var root = query.from(JobRequest.class);
 
         query.select(cb.count(root))
                 .where(createSearchFilter(searchTerm, cb, root));
 
-        return getCurrentSession().createQuery(query).getSingleResult();
+        return buildQuery(query).getSingleResult();
     }
 
 
@@ -151,26 +154,26 @@ public class HibernateJobRequestDaoImpl extends AbstractHibernateDao<JobRequest>
 
     @Override
     public void updateStatus(long jobId, BatchJobStatusType status) {
-        var cb = getCurrentSession().getCriteriaBuilder();
+        var cb = getCriteriaBuilder();
         var update = cb.createCriteriaUpdate(JobRequest.class);
         var root = update.from(JobRequest.class);
 
         update.set("status", status)
                 .where(cb.equal(root.get("id"), jobId));
 
-        getCurrentSession().createQuery(update).executeUpdate();
+        executeUpdate(update);
     }
 
 
     @Override
     public BatchJobStatusType getStatus(long jobId) {
-        var cb = getCurrentSession().getCriteriaBuilder();
+        var cb = getCriteriaBuilder();
         var query = cb.createQuery(BatchJobStatusType.class);
         var root = query.from(JobRequest.class);
 
         query.select(root.get("status"))
                 .where(cb.equal(root.get("id"), jobId));
 
-        return getCurrentSession().createQuery(query).getSingleResult();
+        return buildQuery(query).getSingleResult();
     }
 }

@@ -29,9 +29,13 @@ package org.mitre.mpf.wfm.data.access;
 import org.mitre.mpf.wfm.data.entities.persistent.MarkupResult;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface MarkupResultDao extends JpaDao<MarkupResult> {
-	MarkupResult findByJobIdAndMediaIndex(long jobId, int mediaIndex);
+
+	Optional<MarkupResult> findByJobIdAndMediaIndex(long jobId, int mediaIndex);
+
 	List<MarkupResult> findByJobId(long jobId);
+
 	void deleteByJobId(long jobId);
 }

@@ -32,7 +32,6 @@ import org.mitre.mpf.wfm.camel.ResponseProcessor;
 import org.mitre.mpf.wfm.camel.operations.detection.DetectionResponseProcessor;
 import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
 import org.mitre.mpf.wfm.data.access.MarkupResultDao;
-import org.mitre.mpf.wfm.data.access.hibernate.HibernateMarkupResultDaoImpl;
 import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
 import org.mitre.mpf.wfm.data.entities.persistent.MarkupResult;
 import org.mitre.mpf.wfm.data.entities.persistent.Media;
@@ -43,7 +42,6 @@ import org.mitre.mpf.wfm.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -61,7 +59,6 @@ public class MarkupResponseProcessor extends ResponseProcessor<Markup.MarkupResp
     private InProgressBatchJobsService inProgressJobs;
 
     @Autowired
-    @Qualifier(HibernateMarkupResultDaoImpl.REF)
     private MarkupResultDao markupResultDao;
 
     @Autowired
