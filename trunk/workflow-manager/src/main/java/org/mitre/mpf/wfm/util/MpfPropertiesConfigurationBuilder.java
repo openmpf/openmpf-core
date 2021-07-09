@@ -55,7 +55,8 @@ public class MpfPropertiesConfigurationBuilder {
             "web.job.polling.interval",
             "http.callback.timeout.ms",
             "warn.",
-            "markup."
+            "markup.",
+            "ties.db.url"
     );
 
     private static final Collection<String> SNAPSHOT_PREFIXES = ImmutableList.of(

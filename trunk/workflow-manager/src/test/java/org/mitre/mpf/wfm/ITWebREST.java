@@ -1031,6 +1031,10 @@ public class ITWebREST {
 
 			//wait for it to callback
 			log.info("Waiting for GET callback...");
+			// The GET endpoint always reports an error to force retries.
+			// The getCallbackResult future is only resolved after the required number callback
+			// attempts have been made.
+			// GET and POST both use the same code to handle callback failures.
 			JsonCallbackBody getCallbackContent = getCallbackResult.get();
 			Assert.assertEquals(jobId, getCallbackContent.getJobId());
 			Assert.assertEquals(externalId, getCallbackContent.getExternalId());
@@ -1039,13 +1043,10 @@ public class ITWebREST {
 			Assert.assertTrue(getCallbackContent.getOutputObjectUri().endsWith(
 					String.format("output-objects/%s/detection.json", jobId)));
 
-			// The getCallbackResult future is resolved slightly before WFM marks the job as COMPLETE_WITH_WARNINGS.
-			Thread.sleep(1000);
 			var jobResponseObj = new JSONObject(WebRESTUtils.getJSON(new URL(url + '/' + jobId),
 			                                                         WebRESTUtils.MPF_AUTHORIZATION));
 			var jobStatus = jobResponseObj.getString("jobStatus");
-			// GET and POST both use the same code to handle callback failures.
-			Assert.assertEquals("COMPLETE_WITH_WARNINGS", jobStatus);
+			Assert.assertEquals("COMPLETE", jobStatus);
 
 		} finally {
 			endTest();

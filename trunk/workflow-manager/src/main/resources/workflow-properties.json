@@ -313,5 +313,12 @@
         "type": "INT",
         "propertiesKey": "detection.http.retry.max.delay.ms",
         "mediaTypes": ["VIDEO", "IMAGE", "AUDIO", "UNKNOWN"]
+    },
+    {
+        "name": "TIES_DB_URL",
+        "description": "When provided, information about completed jobs will be sent to the specified TiesDb server.",
+        "type": "STRING",
+        "propertiesKey": "ties.db.url",
+        "mediaTypes": ["VIDEO", "IMAGE", "AUDIO", "UNKNOWN"]
     }
 ]

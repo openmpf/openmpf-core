@@ -34,6 +34,7 @@ import com.google.common.collect.*;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.HttpHostConnectException;
 import org.junit.*;
@@ -261,7 +262,7 @@ public class TestCustomNginxStorageBackend {
             JsonOutputObject outputObject = mock(JsonOutputObject.class);
             when(outputObject.getJobId())
                     .thenReturn(TEST_JOB_ID);
-            _nginxStorageService.store(outputObject);
+            _nginxStorageService.store(outputObject, new MutableObject<>());
             fail("Expected exception not thrown.");
         }
         catch (StorageException e) {

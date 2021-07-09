@@ -32,6 +32,7 @@ import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
 import org.mitre.mpf.interop.JsonOutputObject;
@@ -309,10 +310,10 @@ public class TestS3StorageBackend {
 
         try {
             JsonOutputObject outputObject = setJobProperties(s3Properties);
-            when(_mockLocalStorageBackend.store(outputObject))
+            when(_mockLocalStorageBackend.store(same(outputObject), any()))
                     .thenReturn(filePath.toUri());
 
-            _s3StorageBackend.store(outputObject);
+            _s3StorageBackend.store(outputObject, new MutableObject<>());
             fail("Expected StorageException");
         }
         catch(StorageException e) {
@@ -457,10 +458,10 @@ public class TestS3StorageBackend {
         Path filePath = getTestFileCopy();
 
         JsonOutputObject outputObject = setJobProperties(getS3Properties());
-        when(_mockLocalStorageBackend.store(outputObject))
+        when(_mockLocalStorageBackend.store(same(outputObject), any()))
                 .thenReturn(filePath.toUri());
 
-        URI remoteUri = _s3StorageBackend.store(outputObject);
+        URI remoteUri = _s3StorageBackend.store(outputObject, new MutableObject<>());
         assertEquals(EXPECTED_URI, remoteUri);
         assertFalse(Files.exists(filePath));
         assertEquals(List.of(RESULTS_BUCKET + '/' + EXPECTED_OBJECT_KEY), OBJECTS_POSTED);
@@ -475,10 +476,10 @@ public class TestS3StorageBackend {
         s3Properties.put(MpfConstants.S3_RESULTS_BUCKET_PROPERTY, S3_HOST + BUCKET_WITH_EXISTING_OBJECT);
 
         JsonOutputObject outputObject = setJobProperties(s3Properties);
-        when(_mockLocalStorageBackend.store(outputObject))
+        when(_mockLocalStorageBackend.store(same(outputObject), any()))
                 .thenReturn(filePath.toUri());
 
-        URI remoteUri = _s3StorageBackend.store(outputObject);
+        URI remoteUri = _s3StorageBackend.store(outputObject, new MutableObject<>());
         assertEquals(URI.create(S3_HOST + BUCKET_WITH_EXISTING_OBJECT + '/' + EXPECTED_OBJECT_KEY), remoteUri);
         assertFalse(Files.exists(filePath));
         assertTrue(OBJECTS_POSTED.isEmpty());
@@ -492,11 +493,11 @@ public class TestS3StorageBackend {
         Path filePath = getTestFileCopy();
 
         JsonOutputObject outputObject = setJobProperties(s3Properties);
-        when(_mockLocalStorageBackend.store(outputObject))
+        when(_mockLocalStorageBackend.store(same(outputObject), any()))
                 .thenReturn(filePath.toUri());
 
         try {
-            _s3StorageBackend.store(outputObject);
+            _s3StorageBackend.store(outputObject, new MutableObject<>());
             fail("Expected StorageException to be thrown.");
         }
         catch (StorageException expected) {
@@ -517,11 +518,11 @@ public class TestS3StorageBackend {
         s3Properties.put(MpfConstants.S3_RESULTS_BUCKET_PROPERTY, S3_HOST + "BAD_BUCKET");
 
         JsonOutputObject outputObject = setJobProperties(s3Properties);
-        when(_mockLocalStorageBackend.store(outputObject))
+        when(_mockLocalStorageBackend.store(same(outputObject), any()))
                 .thenReturn(filePath.toUri());
 
         try {
-            _s3StorageBackend.store(outputObject);
+            _s3StorageBackend.store(outputObject, new MutableObject<>());
             fail("Expected StorageException to be thrown.");
         }
         catch (StorageException expected) {
@@ -544,10 +545,10 @@ public class TestS3StorageBackend {
         Path filePath = getTestFileCopy();
 
         JsonOutputObject outputObject = setJobProperties(getS3Properties());
-        when(_mockLocalStorageBackend.store(outputObject))
+        when(_mockLocalStorageBackend.store(same(outputObject), any()))
                 .thenReturn(filePath.toUri());
 
-        URI remoteUri = _s3StorageBackend.store(outputObject);
+        URI remoteUri = _s3StorageBackend.store(outputObject, new MutableObject<>());
         assertEquals(EXPECTED_URI, remoteUri);
         assertFalse(Files.exists(filePath));
 

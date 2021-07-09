@@ -30,6 +30,7 @@ import org.apache.commons.lang3.mutable.Mutable;
 import org.javasimon.aop.Monitored;
 import org.mitre.mpf.wfm.WfmProcessingException;
 import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
+import org.mitre.mpf.wfm.data.entities.transients.TrackCounter;
 import org.mitre.mpf.wfm.enums.BatchJobStatusType;
 import org.mitre.mpf.wfm.event.JobCompleteNotification;
 import org.mitre.mpf.wfm.event.NotificationConsumer;
@@ -41,8 +42,12 @@ import java.time.Instant;
 
 @Monitored
 public interface JobCompleteProcessor extends WfmProcessorInterface, NotificationProducer<JobCompleteNotification> {
-    URI createOutputObject(BatchJob job, Instant timeReceived, Instant timeCompleted,
-                           Mutable<BatchJobStatusType> jobStatus) throws WfmProcessingException, IOException;
+    URI createOutputObject(BatchJob job, Instant timeReceived,
+                           Instant timeCompleted,
+                           Mutable<BatchJobStatusType> jobStatus,
+                           Mutable<String> outputSha,
+                           TrackCounter trackCounter) throws WfmProcessingException, IOException;
+
     void subscribe(NotificationConsumer<JobCompleteNotification> consumer);
     void unsubscribe(NotificationConsumer<JobCompleteNotification> consumer);
 }

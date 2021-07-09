@@ -31,7 +31,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.Table;
-
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.StatusLine;
@@ -69,7 +71,12 @@ import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -114,10 +121,21 @@ public class CustomNginxStorageBackend implements StorageBackend {
     }
 
     @Override
-    public URI store(JsonOutputObject outputObject) throws StorageException {
+    public URI store(JsonOutputObject outputObject, Mutable<String> outputSha) throws StorageException, IOException {
         URI serviceUri = getServiceUri(outputObject.getJobId());
-        try (PipeStream inputStream = createJsonInputStream(outputObject)) {
-            return store(serviceUri, inputStream);
+        if (outputSha.getValue() == null) {
+            MessageDigest digest = DigestUtils.getSha256Digest();
+            URI result;
+            try (var inputStream = new DigestInputStream(createJsonInputStream(outputObject), digest)) {
+                result = store(serviceUri, inputStream);
+            }
+            outputSha.setValue(Hex.encodeHexString(digest.digest()));
+            return result;
+        }
+        else {
+            try (PipeStream inputStream = createJsonInputStream(outputObject)) {
+                return store(serviceUri, inputStream);
+            }
         }
     }
 

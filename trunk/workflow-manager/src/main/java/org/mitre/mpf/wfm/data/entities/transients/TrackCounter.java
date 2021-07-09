@@ -25,26 +25,21 @@
  ******************************************************************************/
 
 
-package org.mitre.mpf.wfm.service;
+package org.mitre.mpf.wfm.data.entities.transients;
 
-import com.google.common.collect.Table;
-import org.apache.commons.lang3.mutable.Mutable;
-import org.mitre.mpf.interop.JsonOutputObject;
-import org.mitre.mpf.wfm.camel.operations.detection.artifactextraction.ArtifactExtractionRequest;
-import org.mitre.mpf.wfm.data.entities.persistent.MarkupResult;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.io.IOException;
-import java.net.URI;
+public class TrackCounter {
 
-public interface StorageBackend {
+    private final Map<TrackCountKey, TrackCountEntry> _counts = new HashMap<>();
 
-    public boolean canStore(JsonOutputObject outputObject) throws StorageException;
-    public URI store(JsonOutputObject outputObject, Mutable<String> outputSha) throws StorageException, IOException;
+    public TrackCountEntry get(long mediaId, int taskIdx, int actionIdx) {
+        return _counts.get(new TrackCountKey(mediaId, taskIdx, actionIdx));
+    }
 
-
-    public boolean canStore(ArtifactExtractionRequest request) throws StorageException;
-    public Table<Integer, Integer, URI> storeArtifacts(ArtifactExtractionRequest request) throws IOException, StorageException;
-
-    public boolean canStore(MarkupResult markupResult) throws StorageException;
-    public void store(MarkupResult markupResult) throws IOException, StorageException;
+    public void set(long mediaId, int taskIdx, int actionIdx, String trackType, int count) {
+        _counts.put(new TrackCountKey(mediaId, taskIdx, actionIdx),
+                    new TrackCountEntry(mediaId, taskIdx, actionIdx, trackType, count));
+    }
 }

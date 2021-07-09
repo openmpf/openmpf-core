@@ -27,6 +27,7 @@
 
 package org.mitre.mpf.wfm.util;
 
+import java.util.Collection;
 import java.util.concurrent.*;
 
 public class ThreadUtil {
@@ -93,6 +94,35 @@ public class ThreadUtil {
         var future = ThreadUtil.<T>newFuture();
         future.completeExceptionally(ex);
         return future;
+    }
+
+
+    public static CompletableFuture<Void> allOf(CompletableFuture<?>... futures) {
+        return adapt(CompletableFuture.allOf(futures));
+    }
+
+    public static CompletableFuture<Void> allOf(
+            Collection<? extends CompletableFuture<?>> futures) {
+        return allOf(futures.toArray(CompletableFuture[]::new));
+    }
+
+
+
+    private static <T> CustomCompletableFuture<T> adapt(CompletionStage<T> future) {
+        if (future instanceof CustomCompletableFuture) {
+            return (CustomCompletableFuture<T>) future;
+        }
+
+        var adaptedFuture = ThreadUtil.<T>newFuture();
+        future.whenComplete((result, err) -> {
+            if (err == null) {
+                adaptedFuture.complete(result);
+            }
+            else {
+                adaptedFuture.completeExceptionally(err);
+            }
+        });
+        return adaptedFuture;
     }
 
 

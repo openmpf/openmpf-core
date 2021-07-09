@@ -64,7 +64,9 @@ public class AggregateJobPropertiesUtil {
 
 
     // in order of precedence
-    private enum PropertyLevel { NONE, SYSTEM, WORKFLOW, ALGORITHM, ACTION, JOB, OVERRIDDEN_ALGORITHM, MEDIA }
+    private enum PropertyLevel {
+        NONE, SYSTEM, WORKFLOW, ALGORITHM, ACTION, JOB, OVERRIDDEN_ALGORITHM, MEDIA,
+        ENVIRONMENT_VARIABLE }
 
 
     private static class PropertyInfo {
@@ -126,6 +128,11 @@ public class AggregateJobPropertiesUtil {
             Map<String, ? extends Map<String, String>> overriddenAlgorithmProperties,
             Map<String, String> jobProperties,
             SystemPropertiesSnapshot systemPropertiesSnapshot) {
+
+        var envPropVal = System.getenv("MPF_PROP_" + propertyName);
+        if (envPropVal != null) {
+            return new PropertyInfo(propertyName, envPropVal, PropertyLevel.ENVIRONMENT_VARIABLE);
+        }
 
         var mediaPropVal = mediaSpecificProperties.get(propertyName);
         if (mediaPropVal != null) {
@@ -246,7 +253,6 @@ public class AggregateJobPropertiesUtil {
     }
 
 
-
     public String getValue(String propertyName, BatchJob job, Media media,
                            Action action) {
         return getPropertyInfo(
@@ -261,6 +267,10 @@ public class AggregateJobPropertiesUtil {
         ).getValue();
     }
 
+
+    public String getValue(String propertyName, JobPart jobPart) {
+        return getValue(propertyName, jobPart.getJob(), jobPart.getMedia(), jobPart.getAction());
+    }
 
     public String getValue(String propertyName, BatchJob job, Media media) {
         return getValue(propertyName, job, media, null);
@@ -428,5 +438,13 @@ public class AggregateJobPropertiesUtil {
         }
 
         return tasksToMerge;
+    }
+
+
+    public boolean isOutputLastTaskOnly(Media media, BatchJob job) {
+        // Action properties and algorithm properties are not checked because it doesn't make sense
+        // to apply OUTPUT_LAST_TASK_ONLY to a single task.
+        return Boolean.parseBoolean(
+                getValue(MpfConstants.OUTPUT_LAST_TASK_ONLY_PROPERTY, job, media));
     }
 }

@@ -27,9 +27,12 @@
 
 package org.mitre.mpf.wfm.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Table;
 import com.google.common.collect.Tables;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.mutable.Mutable;
 import org.mitre.mpf.frameextractor.FrameExtractor;
 import org.mitre.mpf.interop.JsonOutputObject;
 import org.mitre.mpf.wfm.camel.operations.detection.artifactextraction.ArtifactExtractionRequest;
@@ -40,8 +43,11 @@ import org.springframework.stereotype.Component;
 import javax.inject.Inject;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.DigestOutputStream;
+import java.security.MessageDigest;
 
 
 @Component
@@ -65,9 +71,18 @@ public class LocalStorageBackend implements StorageBackend {
     }
 
     @Override
-    public URI store(JsonOutputObject outputObject) throws IOException {
+    public URI store(JsonOutputObject outputObject, Mutable<String> outputSha) throws IOException {
         Path outputPath = _propertiesUtil.createDetectionOutputObjectFile(outputObject.getJobId());
-        _objectMapper.writeValue(outputPath.toFile(), outputObject);
+        if (outputSha.getValue() == null) {
+            MessageDigest digest = DigestUtils.getSha256Digest();
+            try (var outStream = new DigestOutputStream(Files.newOutputStream(outputPath), digest)) {
+                _objectMapper.writeValue(outStream, outputObject);
+            }
+            outputSha.setValue(Hex.encodeHexString(digest.digest()));
+        }
+        else {
+            _objectMapper.writeValue(outputPath.toFile(), outputObject);
+        }
         return outputPath.toUri();
     }
 

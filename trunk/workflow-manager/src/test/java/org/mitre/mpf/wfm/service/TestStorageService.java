@@ -29,7 +29,6 @@ package org.mitre.mpf.wfm.service;
 
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.junit.Before;
@@ -47,7 +46,9 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.*;
+import java.util.Collection;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static org.junit.Assert.*;
 import static org.mitre.mpf.test.TestUtil.nonBlank;
@@ -90,13 +91,14 @@ public class TestStorageService {
                 .thenReturn(true);
 
         var status = new MutableObject<>(BatchJobStatusType.COMPLETE);
-        _storageService.store(outputObject, status);
+        var outputSha = new MutableObject<String>();
+        _storageService.store(outputObject, status, outputSha);
         assertEquals(BatchJobStatusType.COMPLETE, status.getValue());
 
         verify(_mockS3Backend)
-                .store(outputObject);
+                .store(outputObject, outputSha);
         verify(_mockNginxBackend, never())
-                .store(any(JsonOutputObject.class));
+                .store(any(JsonOutputObject.class), any());
     }
 
 
@@ -107,11 +109,11 @@ public class TestStorageService {
         when(_mockS3Backend.canStore(outputObject))
                 .thenReturn(true);
 
-        when(_mockS3Backend.store(outputObject))
+        when(_mockS3Backend.store(same(outputObject), any()))
                 .thenReturn(TEST_REMOTE_URI);
 
         var status = new MutableObject<>(BatchJobStatusType.COMPLETE);
-        URI result = _storageService.store(outputObject, status);
+        URI result = _storageService.store(outputObject, status, new MutableObject<>());
         assertEquals(TEST_REMOTE_URI, result);
         assertEquals(BatchJobStatusType.COMPLETE, status.getValue());
 
@@ -122,11 +124,11 @@ public class TestStorageService {
     @Test
     public void canStoreOutputObjectLocally() throws IOException, StorageException {
         JsonOutputObject outputObject = mock(JsonOutputObject.class);
-        when(_mockLocalBackend.store(outputObject))
+        when(_mockLocalBackend.store(same(outputObject), any()))
                 .thenReturn(TEST_LOCAL_URI);
 
         var status = new MutableObject<>(BatchJobStatusType.COMPLETE);
-        URI result = _storageService.store(outputObject, status);
+        URI result = _storageService.store(outputObject, status, new MutableObject<>());
         assertEquals(TEST_LOCAL_URI, result);
         assertEquals(BatchJobStatusType.COMPLETE, status.getValue());
 
@@ -148,13 +150,13 @@ public class TestStorageService {
         when(_mockS3Backend.canStore(outputObject))
                 .thenReturn(true);
         doThrow(StorageException.class)
-                .when(_mockS3Backend).store(outputObject);
+                .when(_mockS3Backend).store(same(outputObject), any());
 
-        when(_mockLocalBackend.store(outputObject))
+        when(_mockLocalBackend.store(same(outputObject), any()))
                 .thenReturn(TEST_LOCAL_URI);
 
         var status = new MutableObject<>(BatchJobStatusType.COMPLETE);
-        URI result = _storageService.store(outputObject, status);
+        URI result = _storageService.store(outputObject, status, new MutableObject<>());
         assertEquals(TEST_LOCAL_URI, result);
         assertEquals(BatchJobStatusType.COMPLETE_WITH_WARNINGS, status.getValue());
 
@@ -175,11 +177,11 @@ public class TestStorageService {
         doThrow(StorageException.class)
                 .when(_mockNginxBackend).canStore(outputObject);
 
-        when(_mockLocalBackend.store(outputObject))
+        when(_mockLocalBackend.store(same(outputObject), any()))
                 .thenReturn(TEST_LOCAL_URI);
 
         var status = new MutableObject<>(BatchJobStatusType.COMPLETE);
-        URI result = _storageService.store(outputObject, status);
+        URI result = _storageService.store(outputObject, status, new MutableObject<>());
         assertEquals(TEST_LOCAL_URI, result);
         assertEquals(BatchJobStatusType.COMPLETE_WITH_WARNINGS, status.getValue());
 
@@ -187,7 +189,7 @@ public class TestStorageService {
         verifySingleWarningAddedToOutputObject(0, warnings);
 
         verify(_mockNginxBackend, never())
-                .store(any(JsonOutputObject.class));
+                .store(any(JsonOutputObject.class), any());
     }
 
 
@@ -200,14 +202,14 @@ public class TestStorageService {
                 .thenReturn(true);
 
         doThrow(StorageException.class)
-                .when(_mockS3Backend).store(outputObject);
+                .when(_mockS3Backend).store(same(outputObject), any());
 
         doThrow(new IOException("test"))
-                .when(_mockLocalBackend).store(outputObject);
+                .when(_mockLocalBackend).store(same(outputObject), any());
 
         var status = new MutableObject<>(BatchJobStatusType.COMPLETE);
         try {
-            _storageService.store(outputObject, status);
+            _storageService.store(outputObject, status, new MutableObject<>());
             fail("Expected IOException");
         }
         catch (IOException e) {

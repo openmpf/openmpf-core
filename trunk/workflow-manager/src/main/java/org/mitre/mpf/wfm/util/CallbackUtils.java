@@ -165,7 +165,7 @@ public class CallbackUtils implements AutoCloseable {
             HttpUriRequest request, int retries, long delayMs,
             CompletableFuture<HttpResponse> future) {
 
-        log.info("Starting {} callback to {}.", request.getMethod(), request.getURI());
+        log.info("Starting {} callback to \"{}\".", request.getMethod(), request.getURI());
         long nextDelay = Math.min(delayMs * 2, 30_000);
 
         httpAsyncClient.execute(request, new FutureCallback<>() {
@@ -177,9 +177,9 @@ public class CallbackUtils implements AutoCloseable {
                     return;
                 }
 
-                log.warn("The remote server responded with a non-200 status code of {}. There are {} attempts " +
-                                 "remaining and the next attempt will begin in {} ms.",
-                         statusCode, retries, nextDelay);
+                log.warn("\"{}\" responded with a non-200 status code of {}. There are {} " +
+                                 "attempts remaining and the next attempt will begin in {} ms.",
+                         request.getURI(), statusCode, retries, nextDelay);
                 scheduleRetry();
             }
 

@@ -91,6 +91,13 @@ public class JsonOutputObject {
     private Map<String, String> jobProperties;
     public Map<String, String> getJobProperties() { return jobProperties; }
 
+    @JsonProperty("environmentVariableProperties")
+    @JsonPropertyDescription("A map containing properties set through \"MPF_PROP_*\" environment variables.")
+    private Map<String, String> environmentVariableProperties;
+    public Map<String, String> getEnvironmentVariableProperties() {
+        return environmentVariableProperties;
+    }
+
     @JsonProperty("media")
     @JsonPropertyDescription("The collection of media processed by this job.")
     private SortedSet<JsonMediaOutputObject> media;
@@ -120,8 +127,9 @@ public class JsonOutputObject {
         this.timeStop = timeStop;
         this.status = status;
         this.media = new TreeSet<>();
-        this.jobProperties = new HashMap<>();
         this.algorithmProperties = new HashMap<>();
+        this.jobProperties = new HashMap<>();
+        this.environmentVariableProperties = new HashMap<>();
         this.errors = new TreeSet<>();
         this.warnings = new TreeSet<>();
     }
@@ -139,6 +147,7 @@ public class JsonOutputObject {
             @JsonProperty("status") String status,
             @JsonProperty("algorithmProperties") Map<String, Map<String, String>> algorithmProperties,
             @JsonProperty("jobProperties") Map<String, String> jobProperties,
+            @JsonProperty("environmentVariableProperties") Map<String, String> environmentVariableProperties,
             @JsonProperty("media") Collection<JsonMediaOutputObject> media,
             @JsonProperty("errors") Collection<JsonMediaIssue> errors,
             @JsonProperty("warnings") Collection<JsonMediaIssue> warnings) {
@@ -153,6 +162,9 @@ public class JsonOutputObject {
         }
         if (jobProperties != null) {
             outputObject.jobProperties.putAll(jobProperties);
+        }
+        if (environmentVariableProperties != null) {
+            outputObject.environmentVariableProperties.putAll(environmentVariableProperties);
         }
         if (errors != null) {
             outputObject.errors.addAll(errors);

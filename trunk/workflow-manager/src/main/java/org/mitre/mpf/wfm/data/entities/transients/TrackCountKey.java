@@ -25,26 +25,40 @@
  ******************************************************************************/
 
 
-package org.mitre.mpf.wfm.service;
+package org.mitre.mpf.wfm.data.entities.transients;
 
-import com.google.common.collect.Table;
-import org.apache.commons.lang3.mutable.Mutable;
-import org.mitre.mpf.interop.JsonOutputObject;
-import org.mitre.mpf.wfm.camel.operations.detection.artifactextraction.ArtifactExtractionRequest;
-import org.mitre.mpf.wfm.data.entities.persistent.MarkupResult;
+import java.util.Objects;
 
-import java.io.IOException;
-import java.net.URI;
+public class TrackCountKey {
+    private final long _mediaId;
 
-public interface StorageBackend {
+    private final int _taskIdx;
 
-    public boolean canStore(JsonOutputObject outputObject) throws StorageException;
-    public URI store(JsonOutputObject outputObject, Mutable<String> outputSha) throws StorageException, IOException;
+    private final int _actionIdx;
 
+    public TrackCountKey(long mediaId, int taskIdx, int actionIdx) {
+        _mediaId = mediaId;
+        _taskIdx = taskIdx;
+        _actionIdx = actionIdx;
+    }
 
-    public boolean canStore(ArtifactExtractionRequest request) throws StorageException;
-    public Table<Integer, Integer, URI> storeArtifacts(ArtifactExtractionRequest request) throws IOException, StorageException;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        else if (o instanceof TrackCountKey) {
+            var that = (TrackCountKey) o;
+            return _mediaId == that._mediaId && _taskIdx == that._taskIdx
+                    && _actionIdx == that._actionIdx;
+        }
+        else {
+            return false;
+        }
+    }
 
-    public boolean canStore(MarkupResult markupResult) throws StorageException;
-    public void store(MarkupResult markupResult) throws IOException, StorageException;
+    @Override
+    public int hashCode() {
+        return Objects.hash(_mediaId, _taskIdx, _actionIdx);
+    }
 }

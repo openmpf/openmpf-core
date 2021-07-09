@@ -25,26 +25,69 @@
  ******************************************************************************/
 
 
-package org.mitre.mpf.wfm.service;
+package org.mitre.mpf.wfm.util;
 
-import com.google.common.collect.Table;
-import org.apache.commons.lang3.mutable.Mutable;
-import org.mitre.mpf.interop.JsonOutputObject;
-import org.mitre.mpf.wfm.camel.operations.detection.artifactextraction.ArtifactExtractionRequest;
-import org.mitre.mpf.wfm.data.entities.persistent.MarkupResult;
+import org.mitre.mpf.rest.api.pipelines.Action;
+import org.mitre.mpf.rest.api.pipelines.Algorithm;
+import org.mitre.mpf.rest.api.pipelines.Pipeline;
+import org.mitre.mpf.rest.api.pipelines.Task;
+import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
+import org.mitre.mpf.wfm.data.entities.persistent.Media;
 
-import java.io.IOException;
-import java.net.URI;
+public class JobPart {
 
-public interface StorageBackend {
+    private final BatchJob _job;
 
-    public boolean canStore(JsonOutputObject outputObject) throws StorageException;
-    public URI store(JsonOutputObject outputObject, Mutable<String> outputSha) throws StorageException, IOException;
+    private final Media _media;
+
+    private final int _mediaIndex;
+
+    private final int _taskIndex;
+
+    private final int _actionIndex;
 
 
-    public boolean canStore(ArtifactExtractionRequest request) throws StorageException;
-    public Table<Integer, Integer, URI> storeArtifacts(ArtifactExtractionRequest request) throws IOException, StorageException;
+    public JobPart(BatchJob job, Media media, int mediaIndex, int taskIndex, int actionIndex) {
+        _job = job;
+        _media = media;
+        _mediaIndex = mediaIndex;
+        _taskIndex = taskIndex;
+        _actionIndex = actionIndex;
+    }
 
-    public boolean canStore(MarkupResult markupResult) throws StorageException;
-    public void store(MarkupResult markupResult) throws IOException, StorageException;
+    public BatchJob getJob() {
+        return _job;
+    }
+
+    public Media getMedia() {
+        return _media;
+    }
+
+    public int getMediaIndex() {
+        return _mediaIndex;
+    }
+
+    public Pipeline getPipeline() {
+        return _job.getPipelineElements().getPipeline();
+    }
+
+    public Task getTask() {
+        return _job.getPipelineElements().getTask(_taskIndex);
+    }
+
+    public int getTaskIndex() {
+        return _taskIndex;
+    }
+
+    public Action getAction() {
+        return _job.getPipelineElements().getAction(_taskIndex, _actionIndex);
+    }
+
+    public int getActionIndex() {
+        return _actionIndex;
+    }
+
+    public Algorithm getAlgorithm() {
+        return _job.getPipelineElements().getAlgorithm(_taskIndex, _actionIndex);
+    }
 }

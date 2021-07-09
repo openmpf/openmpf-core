@@ -42,6 +42,7 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.http.client.utils.URIBuilder;
 import org.mitre.mpf.interop.JsonOutputObject;
 import org.mitre.mpf.rest.api.pipelines.Action;
@@ -104,10 +105,14 @@ public class S3StorageBackend implements StorageBackend {
     }
 
     @Override
-    public URI store(JsonOutputObject outputObject) throws StorageException, IOException {
-        URI localUri = _localStorageBackend.store(outputObject);
+    public URI store(JsonOutputObject outputObject, Mutable<String> outputSha) throws StorageException, IOException {
+        URI localUri = _localStorageBackend.store(outputObject, outputSha);
         BatchJob job = _inProgressJobs.getJob(outputObject.getJobId());
-        return putInS3IfAbsent(Paths.get(localUri), job.getJobProperties()::get);
+        if (outputSha.getValue() == null) {
+            outputSha.setValue(hashExistingFile(Paths.get(localUri)));
+        }
+        return putInS3IfAbsent(Paths.get(localUri), outputSha.getValue(),
+                               job.getJobProperties()::get);
     }
 
 
@@ -317,9 +322,11 @@ public class S3StorageBackend implements StorageBackend {
         return parts;
     }
 
-
     private URI putInS3IfAbsent(Path path, Function<String, String> properties) throws IOException, StorageException {
-        String hash = hashExistingFile(path);
+        return putInS3IfAbsent(path, hashExistingFile(path), properties);
+    }
+
+    private URI putInS3IfAbsent(Path path, String hash, Function<String, String> properties) throws IOException, StorageException {
         String objectName = getObjectName(hash);
         URI bucketUri = URI.create(properties.apply(MpfConstants.S3_RESULTS_BUCKET_PROPERTY));
         String resultsBucket = getResultsBucketName(bucketUri);

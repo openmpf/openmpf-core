@@ -71,12 +71,13 @@ public class StorageService {
     }
 
 
-    public URI store(JsonOutputObject outputObject, Mutable<BatchJobStatusType> jobStatus) throws IOException {
+    public URI store(JsonOutputObject outputObject, Mutable<BatchJobStatusType> jobStatus,
+                     Mutable<String> outputSha) throws IOException {
         Exception remoteException = null;
         try {
             for (StorageBackend remoteBackend : _remoteBackends) {
                 if (remoteBackend.canStore(outputObject)) {
-                    return remoteBackend.store(outputObject);
+                    return remoteBackend.store(outputObject, outputSha);
                 }
             }
         }
@@ -98,7 +99,7 @@ public class StorageService {
         }
 
         try {
-            return _localBackend.store(outputObject);
+            return _localBackend.store(outputObject, outputSha);
         }
         catch (IOException localException) {
             if (remoteException != null) {
