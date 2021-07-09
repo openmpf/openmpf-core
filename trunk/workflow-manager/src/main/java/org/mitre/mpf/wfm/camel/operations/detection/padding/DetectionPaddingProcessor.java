@@ -56,7 +56,6 @@ import java.awt.geom.NoninvertibleTransformException;
 import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Component(DetectionPaddingProcessor.REF)
@@ -73,7 +72,7 @@ public class DetectionPaddingProcessor extends WfmProcessor {
 
 
     @Inject
-    DetectionPaddingProcessor(
+    public DetectionPaddingProcessor(
             JsonUtils jsonUtils,
             InProgressBatchJobsService inProgressBatchJobs,
             AggregateJobPropertiesUtil aggregateJobPropertiesUtil) {
@@ -105,7 +104,8 @@ public class DetectionPaddingProcessor extends WfmProcessor {
                 Collection<Track> tracks = _inProgressBatchJobs.getTracks(job.getId(), media.getId(),
                         trackMergingContext.getTaskIndex(), actionIndex);
 
-                Collection<Track> filteredTracks = removeZeroSizeDetections(job.getId(), media.getType(), tracks);
+                Collection<Track> filteredTracks = removeZeroSizeDetections(job.getId(), media.getId(),
+                        trackMergingContext.getTaskIndex(), actionIndex, tracks);
 
                 try {
                     if (!requiresPadding(combinedProperties)) {
@@ -125,11 +125,8 @@ public class DetectionPaddingProcessor extends WfmProcessor {
                 int frameWidth = Integer.parseInt(media.getMetadata().get("FRAME_WIDTH"));
                 int frameHeight = Integer.parseInt(media.getMetadata().get("FRAME_HEIGHT"));
 
-                Collection<Track> newTracks = processTracks(
-                        job.getId(), media.getId(), xPadding, yPadding, frameWidth, frameHeight, filteredTracks);
-
-                _inProgressBatchJobs.setTracks(job.getId(), media.getId(),
-                        trackMergingContext.getTaskIndex(), actionIndex, newTracks);
+                processTracks(job.getId(), media.getId(), trackMergingContext.getTaskIndex(), actionIndex,
+                              xPadding, yPadding, frameWidth, frameHeight, filteredTracks);
             }
         }
 
@@ -186,7 +183,7 @@ public class DetectionPaddingProcessor extends WfmProcessor {
         }
     }
 
-    public static Collection<Track> removeZeroSizeDetections(long jobId, MediaType type, Iterable<Track> tracks) {
+    public Collection<Track> removeZeroSizeDetections(long jobId, long mediaId, int taskIndex, int actionIndex, Iterable<Track> tracks) {
         // Remove any detections with zero width and height before padding.
         // If the number of detections goes to 0, drop the track.
         var newTracks = new TreeSet<Track>();
@@ -207,16 +204,13 @@ public class DetectionPaddingProcessor extends WfmProcessor {
                 }
             }
             if (goodDetections.size() > 0) {
-                // This is needed because image "tracks" do not respect the "inclusiveness" of the stop frame:
-                // an image track has start frame 0 and end frame 1, for no apparent reason.
-                int stopFrame = (type == MediaType.IMAGE) ? 1 : goodDetections.last().getMediaOffsetFrame();
                 newTracks.add(new Track(
                         track.getJobId(),
                         track.getMediaId(),
                         track.getTaskIndex(),
                         track.getActionIndex(),
                         goodDetections.first().getMediaOffsetFrame(),
-                        stopFrame,
+                        goodDetections.last().getMediaOffsetFrame(),
                         goodDetections.first().getMediaOffsetTime(),
                         goodDetections.last().getMediaOffsetTime(),
                         track.getType(),
@@ -238,13 +232,17 @@ public class DetectionPaddingProcessor extends WfmProcessor {
             _log.warn(String.format("Dropped one or more detection regions for job id %s with zero width and height. " +
                             "frames dropped: %s",
                     jobId, zeroSizeFramesString.get()));
+            _inProgressBatchJobs.addWarning(
+                    jobId, mediaId, IssueCodes.PADDING, String.format(
+                            "Dropped one or more invalid detection regions (width or height equal to 0, or bounding box completely outside frame) %s", zeroSizeFramesString.get()));
+            _inProgressBatchJobs.setTracks(jobId, mediaId, taskIndex, actionIndex, newTracks);
         }
 
         return newTracks;
     }
 
-    private Collection<Track> processTracks(long jobId, long mediaId, String xPadding, String yPadding,
-                                            int frameWidth, int frameHeight, Iterable<Track> tracks) {
+    private void processTracks(long jobId, long mediaId, int taskIndex, int actionIndex, String xPadding, String yPadding,
+                               int frameWidth, int frameHeight, Iterable<Track> tracks) {
         var newTracks = new TreeSet<Track>();
         var shrunkToNothingFrames = IntStream.builder();
 
@@ -287,9 +285,8 @@ public class DetectionPaddingProcessor extends WfmProcessor {
                     jobId, mediaId, IssueCodes.PADDING, String.format(
                     "Shrunk one or more detection regions to nothing. " +
                             "1-pixel detection regions used instead. %s", shrunkToNothingString.get()));
+            _inProgressBatchJobs.setTracks(jobId, mediaId, taskIndex, actionIndex, newTracks);
         }
-
-        return newTracks;
     }
 
 
