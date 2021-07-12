@@ -46,6 +46,7 @@ import org.mitre.mpf.wfm.enums.MediaType;
 import org.mitre.mpf.wfm.enums.MpfConstants;
 import org.mitre.mpf.wfm.util.AggregateJobPropertiesUtil;
 import org.mitre.mpf.wfm.util.JsonUtils;
+import org.mitre.mpf.wfm.util.PropertiesUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -57,7 +58,6 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.IntStream;
-import java.awt.geom.Rectangle2D;
 
 @Component(DetectionPaddingProcessor.REF)
 public class DetectionPaddingProcessor extends WfmProcessor {
@@ -70,7 +70,6 @@ public class DetectionPaddingProcessor extends WfmProcessor {
     private final InProgressBatchJobsService _inProgressBatchJobs;
 
     private final AggregateJobPropertiesUtil _aggregateJobPropertiesUtil;
-
 
     @Inject
     public DetectionPaddingProcessor(
@@ -186,16 +185,18 @@ public class DetectionPaddingProcessor extends WfmProcessor {
     public Collection<Track> removeIllFormedDetections(long jobId, long mediaId, int taskIndex, int actionIndex,
                                                        int frameWidth, int frameHeight,
                                                        Iterable<Track> tracks) {
-        // Remove any detections with zero width and height before padding.
+        // Remove any detections with zero width/height, or that are entirely outside of the frame.
         // If the number of detections goes to 0, drop the track.
+        // Do not remove ill-formed detections for those types that are exempted.
+
         var newTracks = new TreeSet<Track>();
         var zeroSizeFrames = IntStream.builder();
         var outsideFrames = IntStream.builder();
         var frameBoundingBox = new Rectangle2D.Double(0, 0, frameWidth, frameHeight);
         for (Track track : tracks) {
-            // We could end up here if speech detection is run on media of type VIDEO, and in that case, all detections
-            // in the track have size zero, so we need to simply pass these tracks through without filtering.
-            if (track.getType().equals("SPEECH")) {
+            // If the detection algorithm that created this track normally does not generate bounding boxes for detections,
+            // we need to simply pass these tracks through without filtering.
+            if (_aggregateJobPropertiesUtil.isExemptFromIllFormedDetectionRemoval(track.getType())) {
                 newTracks.add(track);
                 continue;
             }

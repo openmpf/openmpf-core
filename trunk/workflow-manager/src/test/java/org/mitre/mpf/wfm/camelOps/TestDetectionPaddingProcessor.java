@@ -366,9 +366,8 @@ public class TestDetectionPaddingProcessor {
         assertEquals(3, filteredTrack.getEndOffsetTimeInclusive());
     }
 
-
     @Test
-    public void testRemoveIllFormedFrameDetectionsOneOfEach() {
+    public void testRemoveIllFormedDetectionsOneOfEach() {
         SortedSet<Detection> detections = new TreeSet<>();
         Detection detection1 = new Detection(-25, 60, 20, 40, 1, 1, 1, Collections.emptyMap());
         Detection detection2 = new Detection(50, 60, 0, 0, 1, 2, 2, Collections.emptyMap());
@@ -394,6 +393,32 @@ public class TestDetectionPaddingProcessor {
         assertEquals(3, filteredTrack.getEndOffsetTimeInclusive());
     }
 
+    @Test
+    public void testDontRemoveDetectionsFromExemptTypes() {
+        SortedSet<Detection> detections = new TreeSet<>();
+        Detection detection1 = new Detection(-25, 60, 20, 40, 1, 1, 1, Collections.emptyMap());
+        Detection detection2 = new Detection(50, 60, 0, 0, 1, 2, 2, Collections.emptyMap());
+        Detection detection3 = new Detection(50, 60, 20, 40, 1, 3, 3, Collections.emptyMap());
+        detections.add(detection1);
+        detections.add(detection2);
+        detections.add(detection3);
+
+        Track track1 = new Track(1, 2, 1, 1, 1, 3,
+                1, 3, "SPEECH", 1, detections, Collections.emptyMap());
+
+        SortedSet<Track> tracks = new TreeSet<>();
+        tracks.add(track1);
+
+        Collection<Track> filteredTracks = runRemoveIllFormedDetections(tracks, 200, 400, true);
+        assertEquals(1, filteredTracks.size());
+        Track filteredTrack = filteredTracks.iterator().next();
+        SortedSet<Detection> filteredDetections = filteredTrack.getDetections();
+        assertEquals(1, filteredDetections.size());
+        assertEquals(3, filteredTrack.getStartOffsetFrameInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetFrameInclusive());
+        assertEquals(3, filteredTrack.getStartOffsetTimeInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetTimeInclusive());
+    }
 
 
     @Test
