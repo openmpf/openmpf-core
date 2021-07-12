@@ -57,6 +57,7 @@ import java.awt.geom.Rectangle2D;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.IntStream;
+import java.awt.geom.Rectangle2D;
 
 @Component(DetectionPaddingProcessor.REF)
 public class DetectionPaddingProcessor extends WfmProcessor {
@@ -104,17 +105,19 @@ public class DetectionPaddingProcessor extends WfmProcessor {
                 Collection<Track> tracks = _inProgressBatchJobs.getTracks(job.getId(), media.getId(),
                         trackMergingContext.getTaskIndex(), actionIndex);
 
-                Collection<Track> filteredTracks = removeZeroSizeDetections(job.getId(), media.getId(),
-                        trackMergingContext.getTaskIndex(), actionIndex, tracks);
+
+                int frameWidth = Integer.parseInt(media.getMetadata().get("FRAME_WIDTH"));
+                int frameHeight = Integer.parseInt(media.getMetadata().get("FRAME_HEIGHT"));
+
+                Collection<Track> filteredTracks = removeIllFormedDetections(job.getId(), media.getId(),
+                        trackMergingContext.getTaskIndex(), actionIndex,
+                        frameWidth, frameHeight, tracks);
 
                 try {
                     if (requiresPadding(combinedProperties)) {
 
                         String xPadding = combinedProperties.apply(MpfConstants.DETECTION_PADDING_X);
                         String yPadding = combinedProperties.apply(MpfConstants.DETECTION_PADDING_Y);
-
-                        int frameWidth = Integer.parseInt(media.getMetadata().get("FRAME_WIDTH"));
-                        int frameHeight = Integer.parseInt(media.getMetadata().get("FRAME_HEIGHT"));
 
                         processTracks(job.getId(), media.getId(), trackMergingContext.getTaskIndex(), actionIndex,
                               xPadding, yPadding, frameWidth, frameHeight, filteredTracks);
@@ -180,11 +183,15 @@ public class DetectionPaddingProcessor extends WfmProcessor {
         }
     }
 
-    public Collection<Track> removeZeroSizeDetections(long jobId, long mediaId, int taskIndex, int actionIndex, Iterable<Track> tracks) {
+    public Collection<Track> removeIllFormedDetections(long jobId, long mediaId, int taskIndex, int actionIndex,
+                                                       int frameWidth, int frameHeight,
+                                                       Iterable<Track> tracks) {
         // Remove any detections with zero width and height before padding.
         // If the number of detections goes to 0, drop the track.
         var newTracks = new TreeSet<Track>();
         var zeroSizeFrames = IntStream.builder();
+        var outsideFrames = IntStream.builder();
+        var frameBoundingBox = new Rectangle2D.Double(0, 0, frameWidth, frameHeight);
         for (Track track : tracks) {
             // We could end up here if speech detection is run on media of type VIDEO, and in that case, all detections
             // in the track have size zero, so we need to simply pass these tracks through without filtering.
@@ -194,9 +201,15 @@ public class DetectionPaddingProcessor extends WfmProcessor {
             }
             SortedSet<Detection> goodDetections = new TreeSet<>();
             for (Detection detection : track.getDetections()) {
-                if (detection.getWidth() == 0 && detection.getHeight() == 0) {
+                var detectionBoundingBox = new Rectangle2D.Double(detection.getX(), detection.getY(),
+                        detection.getWidth(), detection.getHeight());
+                if (detection.getWidth() == 0 || detection.getHeight() == 0) {
                     zeroSizeFrames.add(detection.getMediaOffsetFrame());
-                } else {
+                }
+                else if (frameBoundingBox.createIntersection(detectionBoundingBox).isEmpty()) {
+                    outsideFrames.add(detection.getMediaOffsetFrame());
+                }
+                else {
                     goodDetections.add(detection);
                 }
             }
@@ -216,12 +229,16 @@ public class DetectionPaddingProcessor extends WfmProcessor {
                         track.getTrackProperties()));
             }
             else {
-                _log.warn("Empty track dropped after removing zero size detection(s)");
+                _log.warn("Empty track dropped after removing ill-formed detection(s)");
             }
 
         }
 
         Optional<String> zeroSizeFramesString = zeroSizeFrames.build()
+                .boxed()
+                .collect(DetectionErrorUtil.toFrameRangesString());
+
+        Optional<String> outsideFramesString = outsideFrames.build()
                 .boxed()
                 .collect(DetectionErrorUtil.toFrameRangesString());
 
@@ -231,7 +248,20 @@ public class DetectionPaddingProcessor extends WfmProcessor {
                     jobId, zeroSizeFramesString.get()));
             _inProgressBatchJobs.addWarning(
                     jobId, mediaId, IssueCodes.PADDING, String.format(
-                            "Dropped one or more invalid detection regions (width or height equal to 0, or bounding box completely outside frame) %s", zeroSizeFramesString.get()));
+                            "Dropped one or more ill-formed detection regions with width or height equal to 0 {%s}",
+                            zeroSizeFramesString.get()));
+        }
+
+        if (outsideFramesString.isPresent()) {
+            _log.warn(String.format("Dropped one or more detection regions for job id %s with bounding box completely outside of the frame. " +
+                            "frames dropped: %s",
+                    jobId, outsideFramesString.get()));
+            _inProgressBatchJobs.addWarning(
+                    jobId, mediaId, IssueCodes.PADDING, String.format(
+                            "Dropped one or more ill-formed detection regions with bounding box completely outside frame {%s}",
+                            outsideFramesString.get()));
+        }
+        if (zeroSizeFramesString.isPresent() || outsideFramesString.isPresent()) {
             _inProgressBatchJobs.setTracks(jobId, mediaId, taskIndex, actionIndex, newTracks);
         }
 
