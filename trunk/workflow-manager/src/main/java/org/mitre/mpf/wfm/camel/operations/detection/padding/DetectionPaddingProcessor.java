@@ -108,25 +108,22 @@ public class DetectionPaddingProcessor extends WfmProcessor {
                         trackMergingContext.getTaskIndex(), actionIndex, tracks);
 
                 try {
-                    if (!requiresPadding(combinedProperties)) {
-                        _inProgressBatchJobs.setTracks(job.getId(), media.getId(),
-                                trackMergingContext.getTaskIndex(), actionIndex, filteredTracks);
-                        continue;
+                    if (requiresPadding(combinedProperties)) {
+
+                        String xPadding = combinedProperties.apply(MpfConstants.DETECTION_PADDING_X);
+                        String yPadding = combinedProperties.apply(MpfConstants.DETECTION_PADDING_Y);
+
+                        int frameWidth = Integer.parseInt(media.getMetadata().get("FRAME_WIDTH"));
+                        int frameHeight = Integer.parseInt(media.getMetadata().get("FRAME_HEIGHT"));
+
+                        processTracks(job.getId(), media.getId(), trackMergingContext.getTaskIndex(), actionIndex,
+                              xPadding, yPadding, frameWidth, frameHeight, filteredTracks);
                     }
                 } catch (DetectionPaddingException e) {
                     // This should not happen because we checked that the detection properties were valid when the
                     // job was created.
                     throw new WfmProcessingException(e);
                 }
-
-                String xPadding = combinedProperties.apply(MpfConstants.DETECTION_PADDING_X);
-                String yPadding = combinedProperties.apply(MpfConstants.DETECTION_PADDING_Y);
-
-                int frameWidth = Integer.parseInt(media.getMetadata().get("FRAME_WIDTH"));
-                int frameHeight = Integer.parseInt(media.getMetadata().get("FRAME_HEIGHT"));
-
-                processTracks(job.getId(), media.getId(), trackMergingContext.getTaskIndex(), actionIndex,
-                              xPadding, yPadding, frameWidth, frameHeight, filteredTracks);
             }
         }
 

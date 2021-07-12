@@ -59,7 +59,7 @@
               {
                 "id": "66ea69feef1361d57ef646e23ba96537f63ead85fbe2a858638ac6d6fb680378",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "TEXT",
@@ -129,7 +129,7 @@
               {
                 "id": "af3b0f240aafc8ca4b4031c33b89a6412d92899640d258a0fd9028d2868582b5",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "TEXT",
@@ -199,7 +199,7 @@
               {
                 "id": "3c6afa6f0794ca099b49790120439453acac973e82db2259960d9e1e1f7f9631",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "TEXT",
