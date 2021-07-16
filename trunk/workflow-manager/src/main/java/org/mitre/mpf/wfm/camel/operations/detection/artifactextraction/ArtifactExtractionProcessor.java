@@ -35,7 +35,6 @@ import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
 import org.mitre.mpf.wfm.data.entities.transients.Detection;
 import org.mitre.mpf.wfm.data.entities.transients.Track;
 import org.mitre.mpf.wfm.enums.ArtifactExtractionStatus;
-import org.mitre.mpf.wfm.enums.BatchJobStatusType;
 import org.mitre.mpf.wfm.enums.IssueCodes;
 import org.mitre.mpf.wfm.enums.MpfHeaders;
 import org.mitre.mpf.wfm.service.StorageService;
@@ -88,7 +87,6 @@ public class ArtifactExtractionProcessor extends WfmProcessor {
                 processExtractionRequest(request);
                 break;
             default:
-                _inProgressBatchJobs.setJobStatus(request.getJobId(), BatchJobStatusType.IN_PROGRESS_ERRORS);
                 _inProgressBatchJobs.addError(
                         request.getJobId(), request.getMediaId(), IssueCodes.ARTIFACT_EXTRACTION,
                         "Error extracting artifacts(s) from frame(s): Unsupported media type"
@@ -100,7 +98,7 @@ public class ArtifactExtractionProcessor extends WfmProcessor {
     }
 
 
-    private void setStatus(Detection detection, URI uri) {
+    private static void setStatus(Detection detection, URI uri) {
         if (uri == null) {
             detection.setArtifactExtractionStatus(ArtifactExtractionStatus.FAILED);
         }
@@ -149,12 +147,9 @@ public class ArtifactExtractionProcessor extends WfmProcessor {
                                        request.getTaskIndex(), request.getActionIndex(), jobTracks);
 
         Optional<String> missingFramesString = createMissingFramesString(jobTracks, request);
-        if (missingFramesString.isPresent()) {
-            _inProgressBatchJobs.setJobStatus(request.getJobId(), BatchJobStatusType.IN_PROGRESS_ERRORS);
-            _inProgressBatchJobs.addError(
-                    request.getJobId(), request.getMediaId(), IssueCodes.ARTIFACT_EXTRACTION,
-                    "Error extracting artifact(s). " + missingFramesString.get());
-        }
+        missingFramesString.ifPresent(s -> _inProgressBatchJobs.addError(
+                request.getJobId(), request.getMediaId(), IssueCodes.ARTIFACT_EXTRACTION,
+                "Error extracting artifact(s). " + s));
     }
 
     private static Optional<String> createMissingFramesString(SortedSet<Track> jobTracks,
@@ -184,12 +179,17 @@ public class ArtifactExtractionProcessor extends WfmProcessor {
                         + "exception. All detections (including exemplars) produced in this task "
                         + "for this medium will NOT have an associated artifact.",
                 request.getJobId(), request.getTaskIndex(), request.getMediaId(), e);
-        _inProgressBatchJobs.setJobStatus(request.getJobId(), BatchJobStatusType.IN_PROGRESS_ERRORS);
-        var tracks = _inProgressBatchJobs.getTracks(request.getJobId(), request.getMediaId(), request.getTaskIndex(),
-                                                    request.getActionIndex());
-        createMissingFramesString(tracks, request)
-                .ifPresent(s -> _inProgressBatchJobs.addError(
-                        request.getJobId(), request.getMediaId(), IssueCodes.ARTIFACT_EXTRACTION,
-                        "Error extracting artifact(s). " + s));
+        var tracks = _inProgressBatchJobs.getTracks(
+                request.getJobId(),
+                request.getMediaId(),
+                request.getTaskIndex(),
+                request.getActionIndex());
+
+        var missingFrameString = createMissingFramesString(tracks, request)
+                .map(err -> "Error extracting artifact(s). " + err)
+                .orElseGet(() -> "Artifact extraction failed to due " + e);
+        _inProgressBatchJobs.addError(
+                request.getJobId(), request.getMediaId(), IssueCodes.ARTIFACT_EXTRACTION,
+                missingFrameString);
     }
 }

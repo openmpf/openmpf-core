@@ -37,8 +37,8 @@ import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
 import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
 import org.mitre.mpf.wfm.data.entities.persistent.DetectionProcessingError;
 import org.mitre.mpf.wfm.data.entities.persistent.Media;
-import org.mitre.mpf.wfm.data.entities.transients.*;
-import org.mitre.mpf.wfm.enums.BatchJobStatusType;
+import org.mitre.mpf.wfm.data.entities.transients.Detection;
+import org.mitre.mpf.wfm.data.entities.transients.Track;
 import org.mitre.mpf.wfm.enums.MpfConstants;
 import org.mitre.mpf.wfm.util.AggregateJobPropertiesUtil;
 import org.mitre.mpf.wfm.util.FrameTimeInfo;
@@ -310,14 +310,12 @@ public class DetectionResponseProcessor
             // Some error occurred during detection. Store this error.
             if (detectionResponse.getError() == DetectionProtobuf.DetectionError.REQUEST_CANCELLED) {
                 log.warn("[{}] Job cancelled while processing {}.", getLogLabel(jobId, detectionResponse), mediaLabel);
-                inProgressJobs.setJobStatus(jobId, BatchJobStatusType.CANCELLING);
                 errorCode = MpfConstants.REQUEST_CANCELLED;
                 errorMessage = "Successfully cancelled.";
             }
             else {
                 log.error("[{}] Encountered a detection error while processing {}: {}",
                         getLogLabel(jobId, detectionResponse), mediaLabel, detectionResponse.getError());
-                inProgressJobs.setJobStatus(jobId, BatchJobStatusType.IN_PROGRESS_ERRORS);
                 errorCode = Objects.toString(detectionResponse.getError());
                 errorMessage = detectionResponse.getErrorMessage();
             }

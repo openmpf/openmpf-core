@@ -27,7 +27,6 @@
 package org.mitre.mpf.wfm.data.access.hibernate;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Query;
 import org.hibernate.engine.jdbc.dialect.internal.StandardDialectResolver;
 import org.hibernate.engine.jdbc.dialect.spi.DatabaseMetaDataDialectResolutionInfoAdapter;
 import org.mitre.mpf.wfm.data.access.JobRequestDao;
@@ -39,43 +38,65 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.List;
+import java.util.function.Function;
 
 @Repository
 @Transactional(propagation = Propagation.REQUIRED)
 public class HibernateJobRequestDaoImpl extends AbstractHibernateDao<JobRequest> implements JobRequestDao {
     private static final Logger LOG = LoggerFactory.getLogger(HibernateJobRequestDaoImpl.class);
 
-    public HibernateJobRequestDaoImpl() { this.clazz = JobRequest.class; }
+    public HibernateJobRequestDaoImpl() {
+        super(JobRequest.class);
+    }
+
 
     @Override
     public void cancelJobsInNonTerminalState() {
-        Query query = getCurrentSession().
-                createQuery("UPDATE JobRequest set status = :newStatus where status in (:nonTerminalStatuses)");
-        query.setParameter("newStatus", BatchJobStatusType.CANCELLED_BY_SHUTDOWN);
-        query.setParameterList("nonTerminalStatuses", BatchJobStatusType.getNonTerminalStatuses());
-        int updatedRows = query.executeUpdate();
-        if(updatedRows >= 0) {
+        var update = getCriteriaBuilder().createCriteriaUpdate(JobRequest.class);
+        var root = update.from(JobRequest.class);
+
+        var nonTerminalStatuses = BatchJobStatusType.getNonTerminalStatuses();
+        update.set("status", BatchJobStatusType.CANCELLED_BY_SHUTDOWN)
+                .where(root.get("status").in(nonTerminalStatuses));
+
+        int numRowsUpdated = executeUpdate(update);
+        if (numRowsUpdated > 0) {
             LOG.warn("{} jobs were in a non-terminal state and have been marked as {}",
-                     updatedRows, BatchJobStatusType.CANCELLED_BY_SHUTDOWN);
+                     numRowsUpdated, BatchJobStatusType.CANCELLED_BY_SHUTDOWN);
         }
     }
 
 
     @Override
-    public List<JobRequest> findByPage(int pageSize, int offset, String searchTerm, String sortColumn,
+    public List<JobRequest> findByPage(int pageSize,
+                                       int offset,
+                                       String searchTerm,
+                                       String sortColumn,
                                        String sortOrderDirection) {
-        var orderByClause = String.format("order by %s %s", sortColumn, sortOrderDirection);
-        Query query;
-        if (StringUtils.isBlank(searchTerm)) {
-            query = getCurrentSession().createQuery("from JobRequest " + orderByClause);
+        var cb = getCriteriaBuilder();
+        var query = cb.createQuery(JobRequest.class);
+        var root = query.from(JobRequest.class);
+
+        if (!StringUtils.isBlank(searchTerm)) {
+            query.where(createSearchFilter(searchTerm, cb, root));
+        }
+
+        if (sortOrderDirection.equals("desc")) {
+            query.orderBy(cb.desc(root.get(sortColumn)));
         }
         else {
-            query = createSearchQuery(searchTerm, "", orderByClause);
+            query.orderBy(cb.asc(root.get(sortColumn)));
         }
-        return (List<JobRequest>) query.setFirstResult(offset)
+
+        return buildQuery(query)
+                .setFirstResult(offset)
                 .setMaxResults(pageSize)
                 .list();
     }
@@ -83,25 +104,36 @@ public class HibernateJobRequestDaoImpl extends AbstractHibernateDao<JobRequest>
 
     @Override
     public long countFiltered(String searchTerm) {
-        return (long) createSearchQuery(searchTerm, "select count(*)", "")
-                .list()
-                .get(0);
+        var cb = getCriteriaBuilder();
+        var query = cb.createQuery(Long.class);
+        var root = query.from(JobRequest.class);
+
+        query.select(cb.count(root))
+                .where(createSearchFilter(searchTerm, cb, root));
+
+        return buildQuery(query).getSingleResult();
     }
 
 
-    private Query createSearchQuery(String searchTerm, String selectClause, String orderByClause) {
-        return getCurrentSession().createQuery(
-                selectClause
-                        + " from JobRequest"
-                        + " where cast(id as string) like :searchTerm"
-                        + " or lower(pipeline) like :searchTerm"
-                        + " or lower(status) like :searchTerm"
-                        + " or to_char(timeReceived, 'YYYY-MM-DD HH24:MI:SS') like :searchTerm"
-                        + " or to_char(timeCompleted, 'YYYY-MM-DD HH24:MI:SS') like :searchTerm "
-                        + orderByClause)
-                .setString("searchTerm", '%' + searchTerm.toLowerCase() + '%');
-    }
+    private static Predicate createSearchFilter(String searchTerm, CriteriaBuilder cb,
+                                                Root<JobRequest> root) {
 
+        var dateFormat = "YYYY-MM-DD HH24:MI:SS";
+        var searchWithWildCard = '%' + searchTerm.toLowerCase() + '%';
+
+        Function<Expression<String>, Predicate> ilike
+                = expr -> cb.like(cb.lower(expr), searchWithWildCard);
+
+        return cb.or(
+                ilike.apply(root.get("id").as(String.class)),
+                ilike.apply(root.get("pipeline")),
+                ilike.apply(root.get("status").as(String.class)),
+                ilike.apply(cb.function("to_char", String.class, root.get("timeReceived"),
+                                        cb.literal(dateFormat))),
+                ilike.apply(cb.function("to_char", String.class, root.get("timeCompleted"),
+                                        cb.literal(dateFormat)))
+        );
+    }
 
     @Override
     public long getNextId() {
@@ -117,5 +149,31 @@ public class HibernateJobRequestDaoImpl extends AbstractHibernateDao<JobRequest>
                 return resultSet.getLong(1);
             }
         });
+    }
+
+
+    @Override
+    public void updateStatus(long jobId, BatchJobStatusType status) {
+        var cb = getCriteriaBuilder();
+        var update = cb.createCriteriaUpdate(JobRequest.class);
+        var root = update.from(JobRequest.class);
+
+        update.set("status", status)
+                .where(cb.equal(root.get("id"), jobId));
+
+        executeUpdate(update);
+    }
+
+
+    @Override
+    public BatchJobStatusType getStatus(long jobId) {
+        var cb = getCriteriaBuilder();
+        var query = cb.createQuery(BatchJobStatusType.class);
+        var root = query.from(JobRequest.class);
+
+        query.select(root.get("status"))
+                .where(cb.equal(root.get("id"), jobId));
+
+        return buildQuery(query).getSingleResult();
     }
 }

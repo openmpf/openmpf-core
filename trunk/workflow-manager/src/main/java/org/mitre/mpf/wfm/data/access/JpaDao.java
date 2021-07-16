@@ -34,11 +34,6 @@ import java.util.List;
 @Monitored
 public interface JpaDao<T> {
 
-    /**
-     * <p>Sets the type of elements managed by this dao.</p>
-     */
-    void setClass(final Class<T> classToSet);
-
     /** <p>Retrieves an element of the given {@link #getClass() class} by its id.</p> */
     T findById(final long id);
 

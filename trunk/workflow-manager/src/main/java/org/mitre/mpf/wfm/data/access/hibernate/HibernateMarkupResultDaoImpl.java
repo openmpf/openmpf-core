@@ -28,47 +28,58 @@ package org.mitre.mpf.wfm.data.access.hibernate;
 
 import org.mitre.mpf.wfm.data.access.MarkupResultDao;
 import org.mitre.mpf.wfm.data.entities.persistent.MarkupResult;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
-@Repository(HibernateMarkupResultDaoImpl.REF)
+@Repository
 @Transactional(propagation = Propagation.REQUIRED)
-public class HibernateMarkupResultDaoImpl extends AbstractHibernateDao<MarkupResult> implements MarkupResultDao {
-	private static final Logger log = LoggerFactory.getLogger(HibernateMarkupResultDaoImpl.class);
-	public static final String REF = "hibernateMarkupResultDaoImpl";
-	public HibernateMarkupResultDaoImpl() {
-		this.clazz = MarkupResult.class;
-	}
+public class HibernateMarkupResultDaoImpl
+        extends AbstractHibernateDao<MarkupResult> implements MarkupResultDao {
 
-	@Override
-	public MarkupResult findByJobIdAndMediaIndex(long jobId, int mediaIndex) {
-		List results = getCurrentSession().createQuery("from " + MarkupResult.class.getSimpleName() + " where jobId = :jobId and mediaIndex = :mediaIndex")
-			.setParameter("jobId", jobId)
-			.setParameter("mediaIndex", mediaIndex)
-			.setMaxResults(1)
-			.list();
+    public HibernateMarkupResultDaoImpl() {
+        super(MarkupResult.class);
+    }
 
-		return (results.size() != 0) ? (MarkupResult)(results.get(0)) : null;
-	}
+    @Override
+    public Optional<MarkupResult> findByJobIdAndMediaIndex(long jobId, int mediaIndex) {
+        var cb = getCriteriaBuilder();
+        var query = cb.createQuery(MarkupResult.class);
+        var root = query.from(MarkupResult.class);
 
-	@Override
-	@SuppressWarnings("unchecked")
-	public List<MarkupResult> findByJobId(long jobId) {
-		return getCurrentSession().createQuery("from " + MarkupResult.class.getSimpleName() + " where jobId = :jobId")
-				.setParameter("jobId", jobId)
-				//.setMaxResults(1)
-				.list();
-	}
+        query.where(
+                cb.equal(root.get("jobId"), jobId),
+                cb.equal(root.get("mediaIndex"), mediaIndex));
 
-	@Override
-	public void deleteByJobId(long jobId) {
-		getCurrentSession().createQuery("delete from "+MarkupResult.class.getSimpleName()+" where jobId = :jobId")
-				.setParameter("jobId", jobId)
-				.executeUpdate();
-	}
+        return buildQuery(query)
+                .setMaxResults(1)
+                .list()
+                .stream()
+                .findFirst();
+    }
+
+    @Override
+    public List<MarkupResult> findByJobId(long jobId) {
+        var cb = getCriteriaBuilder();
+        var query = cb.createQuery(MarkupResult.class);
+        var root = query.from(MarkupResult.class);
+
+        query.where(cb.equal(root.get("jobId"), jobId));
+
+        return buildQuery(query).list();
+    }
+
+    @Override
+    public void deleteByJobId(long jobId) {
+        var cb = getCriteriaBuilder();
+        var delete = cb.createCriteriaDelete(MarkupResult.class);
+        var root = delete.from(MarkupResult.class);
+
+        delete.where(cb.equal(root.get("jobId"), jobId));
+
+        executeDelete(delete);
+    }
 }

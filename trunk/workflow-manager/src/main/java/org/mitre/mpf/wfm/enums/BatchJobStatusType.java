@@ -67,11 +67,6 @@ public enum BatchJobStatusType {
     IN_PROGRESS_WARNINGS(false),
 
     /**
-     * Indicates that the job is having its output object built.
-     */
-    BUILDING_OUTPUT_OBJECT(false),
-
-    /**
      * Indicates the job has completed.
      */
     COMPLETE(true),

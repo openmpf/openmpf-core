@@ -43,7 +43,6 @@ import org.mitre.mpf.wfm.data.access.MarkupResultDao;
 import org.mitre.mpf.wfm.data.entities.persistent.*;
 import org.mitre.mpf.wfm.enums.BatchJobStatusType;
 import org.mitre.mpf.wfm.enums.MpfHeaders;
-import org.mitre.mpf.wfm.service.JobStatusBroadcaster;
 import org.mitre.mpf.wfm.service.S3StorageBackend;
 import org.mitre.mpf.wfm.service.StorageException;
 import org.mitre.mpf.wfm.service.pipeline.PipelineService;
@@ -81,8 +80,6 @@ public class JobRequestServiceImpl implements JobRequestService {
 
     private final MarkupResultDao _markupResultDao;
 
-    private final JobStatusBroadcaster _jobStatusBroadcaster;
-
     private final ProducerTemplate _jobRequestProducerTemplate;
 
     @Inject
@@ -95,7 +92,6 @@ public class JobRequestServiceImpl implements JobRequestService {
             InProgressBatchJobsService inProgressJobs,
             JobRequestDao jobRequestDao,
             MarkupResultDao markupResultDao,
-            JobStatusBroadcaster jobStatusBroadcaster,
             ProducerTemplate jobRequestProducerTemplate) {
         _pipelineService = pipelineService;
         _propertiesUtil = propertiesUtil;
@@ -105,7 +101,6 @@ public class JobRequestServiceImpl implements JobRequestService {
         _inProgressJobs = inProgressJobs;
         _jobRequestDao = jobRequestDao;
         _markupResultDao = markupResultDao;
-        _jobStatusBroadcaster = jobStatusBroadcaster;
         _jobRequestProducerTemplate = jobRequestProducerTemplate;
     }
 
@@ -241,11 +236,10 @@ public class JobRequestServiceImpl implements JobRequestService {
             jobRequestEntity.setOutputObjectPath(null);
             jobRequestEntity.setOutputObjectVersion(null);
 
-            _inProgressJobs.setJobStatus(job.getId(), jobStatus);
             jobRequestEntity.setJob(_jsonUtils.serialize(job));
 
             jobRequestEntity = _jobRequestDao.persist(jobRequestEntity);
-            _jobStatusBroadcaster.broadcast(jobRequestEntity.getId(), 0, jobStatus);
+            _inProgressJobs.setJobStatus(job.getId(), jobStatus);
             return jobRequestEntity;
         }
         catch (Exception e) {

@@ -44,7 +44,6 @@ import org.mitre.mpf.wfm.WfmProcessingException;
 import org.mitre.mpf.wfm.camel.WfmProcessor;
 import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
 import org.mitre.mpf.wfm.data.entities.persistent.Media;
-import org.mitre.mpf.wfm.enums.BatchJobStatusType;
 import org.mitre.mpf.wfm.enums.IssueCodes;
 import org.mitre.mpf.wfm.enums.MediaType;
 import org.mitre.mpf.wfm.enums.MpfHeaders;
@@ -200,11 +199,9 @@ public class MediaInspectionProcessor extends WfmProcessor {
         }
 
         setHeaders(exchange, jobId, mediaId);
-
-        if (media.isFailed()) {
-            _inProgressJobs.setJobStatus(jobId, BatchJobStatusType.ERROR);
-        }
     }
+
+
     private static void setHeaders(Exchange exchange, long jobId, long mediaId) {
         // Copy these headers to the output exchange.
         exchange.getOut().setHeader(MpfHeaders.CORRELATION_ID, exchange.getIn().getHeader(MpfHeaders.CORRELATION_ID));

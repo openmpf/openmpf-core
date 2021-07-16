@@ -32,11 +32,9 @@ import org.mitre.mpf.wfm.camel.ResponseProcessor;
 import org.mitre.mpf.wfm.camel.operations.detection.DetectionResponseProcessor;
 import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
 import org.mitre.mpf.wfm.data.access.MarkupResultDao;
-import org.mitre.mpf.wfm.data.access.hibernate.HibernateMarkupResultDaoImpl;
 import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
 import org.mitre.mpf.wfm.data.entities.persistent.MarkupResult;
 import org.mitre.mpf.wfm.data.entities.persistent.Media;
-import org.mitre.mpf.wfm.enums.BatchJobStatusType;
 import org.mitre.mpf.wfm.enums.IssueCodes;
 import org.mitre.mpf.wfm.enums.IssueSources;
 import org.mitre.mpf.wfm.enums.MarkupStatus;
@@ -44,7 +42,6 @@ import org.mitre.mpf.wfm.service.StorageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -62,7 +59,6 @@ public class MarkupResponseProcessor extends ResponseProcessor<Markup.MarkupResp
     private InProgressBatchJobsService inProgressJobs;
 
     @Autowired
-    @Qualifier(HibernateMarkupResultDaoImpl.REF)
     private MarkupResultDao markupResultDao;
 
     @Autowired
@@ -90,7 +86,6 @@ public class MarkupResponseProcessor extends ResponseProcessor<Markup.MarkupResp
         markupResultDao.persist(markupResult);
 
         if (markupResult.getMarkupStatus() == MarkupStatus.FAILED) {
-            inProgressJobs.setJobStatus(jobId, BatchJobStatusType.IN_PROGRESS_ERRORS);
             var errorMessage = markupResponse.hasErrorMessage()
                     ? markupResponse.getErrorMessage()
                     : "FAILED";
@@ -98,12 +93,11 @@ public class MarkupResponseProcessor extends ResponseProcessor<Markup.MarkupResp
                                     IssueSources.MARKUP);
         }
         if (markupResult.getMarkupStatus() == MarkupStatus.COMPLETE_WITH_WARNING) {
-            inProgressJobs.setJobStatus(jobId, BatchJobStatusType.IN_PROGRESS_WARNINGS);
             var warningMessage = markupResponse.hasErrorMessage()
                     ? markupResponse.getErrorMessage()
                     : "COMPLETE_WITH_WARNING";
-            inProgressJobs.addWarning(jobId, markupResult.getMediaId(), IssueCodes.MARKUP, warningMessage,
-                                      IssueSources.MARKUP);
+            inProgressJobs.addWarning(jobId, markupResult.getMediaId(), IssueCodes.MARKUP,
+                                      warningMessage, IssueSources.MARKUP);
         }
         return null;
     }

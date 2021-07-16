@@ -74,22 +74,21 @@ public class TestJobRequestService {
 
     private final JmsUtils _mockJmsUtils = mock(JmsUtils.class);
 
-    private final InProgressBatchJobsService _inProgressJobs = new InProgressBatchJobsService(_mockPropertiesUtil,
-                                                                                              null);
-
     private final JobRequestDao _mockJobRequestDao = mock(JobRequestDao.class);
-
-    private final MarkupResultDao _mockMarkupResultDao = mock(MarkupResultDao.class);
 
     private final JobStatusBroadcaster _mockJobStatusBroadcaster = mock(JobStatusBroadcaster.class);
 
-    private final ProducerTemplate _mockProduceTemplate = mock(ProducerTemplate.class);
+    private final InProgressBatchJobsService _inProgressJobs = new InProgressBatchJobsService(
+            _mockPropertiesUtil, null, _mockJobRequestDao, _mockJobStatusBroadcaster);
 
+    private final MarkupResultDao _mockMarkupResultDao = mock(MarkupResultDao.class);
+
+    private final ProducerTemplate _mockProduceTemplate = mock(ProducerTemplate.class);
 
     private final JobRequestService _jobRequestService
             = new JobRequestServiceImpl(_mockPropertiesUtil, _aggregateJobPropertiesUtil, _mockPipelineService,
                                         _jsonUtils, _mockJmsUtils, _inProgressJobs, _mockJobRequestDao,
-                                        _mockMarkupResultDao, _mockJobStatusBroadcaster, _mockProduceTemplate);
+                                        _mockMarkupResultDao, _mockProduceTemplate);
 
     @Rule
     public TemporaryFolder _temporaryFolder = new TemporaryFolder();
@@ -144,9 +143,9 @@ public class TestJobRequestService {
         when(_mockPipelineService.getBatchPipelineElements("TEST PIPELINE"))
                 .thenReturn(pipelineElements);
 
-        var mockSystemPropSnapshot = mock(SystemPropertiesSnapshot.class);
+        var systemPropsSnapshot = new SystemPropertiesSnapshot(Map.of());
         when(_mockPropertiesUtil.createSystemPropertiesSnapshot())
-                .thenReturn(mockSystemPropSnapshot);
+                .thenReturn(systemPropsSnapshot);
 
         when(_mockJobRequestDao.getNextId())
                 .thenReturn(123L);
@@ -160,7 +159,7 @@ public class TestJobRequestService {
         var jobRequestEntity = _jobRequestService.run(jobCreationRequest);
 
         verify(_mockJobStatusBroadcaster)
-                .broadcast(123, 0, BatchJobStatusType.IN_PROGRESS);
+                .broadcast(123, BatchJobStatusType.IN_PROGRESS);
         verifyNoMoreInteractions(_mockJobStatusBroadcaster);
 
         assertEquals(123, jobRequestEntity.getId());
@@ -172,15 +171,18 @@ public class TestJobRequestService {
                 .sendBodyAndHeaders(eq(MediaRetrieverRouteBuilder.ENTRY_POINT), eq(ExchangePattern.InOnly),
                                     isNull(), eq(Map.of(MpfHeaders.JOB_ID, 123L,
                                                         MpfHeaders.JMS_PRIORITY, defaultPriority)));
+        verify(_mockJobRequestDao)
+                .updateStatus(123, BatchJobStatusType.IN_PROGRESS);
 
 
         BatchJob job = _inProgressJobs.getJob(123);
-        assertArrayEquals(jobRequestEntity.getJob(), _jsonUtils.serialize(job));
+        assertEquals(123,
+                     _jsonUtils.deserialize(jobRequestEntity.getJob(), BatchJob.class).getId());
 
         assertEquals(123, job.getId());
         assertEquals(jobCreationRequest.getExternalId(), job.getExternalId().get());
         assertEquals(0, job.getCurrentTaskIndex());
-        assertSame(mockSystemPropSnapshot, job.getSystemPropertiesSnapshot());
+        assertSame(systemPropsSnapshot, job.getSystemPropertiesSnapshot());
         assertSame(pipelineElements, job.getPipelineElements());
         assertEquals(defaultPriority, job.getPriority());
         assertTrue(job.isOutputEnabled());
@@ -269,7 +271,7 @@ public class TestJobRequestService {
                 .persist(jobRequestEntity);
 
         verify(_mockJobStatusBroadcaster)
-                .broadcast(321, 0, BatchJobStatusType.IN_PROGRESS);
+                .broadcast(321, BatchJobStatusType.IN_PROGRESS);
         verifyNoMoreInteractions(_mockJobStatusBroadcaster);
 
         verify(_mockProduceTemplate)
@@ -277,10 +279,13 @@ public class TestJobRequestService {
                                     isNull(), eq(Map.of(MpfHeaders.JOB_ID, 321L,
                                                         MpfHeaders.JMS_PRIORITY, 3)));
 
+        verify(_mockJobRequestDao)
+                .updateStatus(321, BatchJobStatusType.IN_PROGRESS);
 
 
         BatchJob newJob = _inProgressJobs.getJob(321);
-        assertArrayEquals(jobRequestEntity.getJob(), _jsonUtils.serialize(newJob));
+        assertEquals(321,
+                     _jsonUtils.deserialize(jobRequestEntity.getJob(), BatchJob.class).getId());
         assertEquals(BatchJobStatusType.IN_PROGRESS, jobRequestEntity.getStatus());
 
         assertEquals(BatchJobStatusType.IN_PROGRESS, newJob.getStatus());

@@ -45,7 +45,6 @@ import org.mitre.mpf.wfm.WfmProcessingException;
 import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
 import org.mitre.mpf.wfm.data.access.JobRequestDao;
 import org.mitre.mpf.wfm.data.access.MarkupResultDao;
-import org.mitre.mpf.wfm.data.access.hibernate.HibernateMarkupResultDaoImpl;
 import org.mitre.mpf.wfm.data.entities.persistent.*;
 import org.mitre.mpf.wfm.data.entities.transients.Detection;
 import org.mitre.mpf.wfm.data.entities.transients.Track;
@@ -62,7 +61,6 @@ import org.mitre.mpf.wfm.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -88,7 +86,6 @@ public class JobCompleteProcessorImpl extends WfmProcessor implements JobComplet
     private JobRequestDao jobRequestDao;
 
     @Autowired
-    @Qualifier(HibernateMarkupResultDaoImpl.REF)
     private MarkupResultDao markupResultDao;
 
     @Autowired
@@ -163,10 +160,12 @@ public class JobCompleteProcessorImpl extends WfmProcessor implements JobComplet
                 jobStatus.setValue(BatchJobStatusType.ERROR);
             }
 
-            inProgressBatchJobs.setJobStatus(jobId, jobStatus.getValue());
+            jobProgressStore.setJobProgress(jobId, 100);
+            inProgressBatchJobs.setJobStatusNoBroadcast(jobId, jobStatus.getValue());
             jobRequest.setStatus(jobStatus.getValue());
             jobRequest.setJob(jsonUtils.serialize(job));
             jobRequestDao.persist(jobRequest);
+            jobStatusBroadcaster.broadcast(jobId, 100, BatchJobStatusType.COMPLETE);
 
             IoUtils.deleteEmptyDirectoriesRecursively(propertiesUtil.getJobMarkupDirectory(jobId).toPath());
             IoUtils.deleteEmptyDirectoriesRecursively(propertiesUtil.getJobArtifactsDirectory(jobId).toPath());
@@ -222,7 +221,6 @@ public class JobCompleteProcessorImpl extends WfmProcessor implements JobComplet
             }
         }
 
-        jobStatusBroadcaster.broadcast(job.getId(), 100, jobStatus.getValue(), Instant.now());
         jobProgressStore.removeJob(job.getId());
         log.info("[Job {}] Job complete with status: {}", job.getId(), jobStatus.getValue());
     }
@@ -375,12 +373,13 @@ public class JobCompleteProcessorImpl extends WfmProcessor implements JobComplet
                     media.getMediaSpecificProperties(),
                     mediaOutputObject.getMediaProperties());
 
-            MarkupResult markupResult = markupResultDao.findByJobIdAndMediaIndex(jobId, mediaIndex);
-            if(markupResult != null) {
-                mediaOutputObject.setMarkupResult(new JsonMarkupOutputObject(markupResult.getId(),
-                        markupResult.getMarkupUri(), markupResult.getMarkupStatus().name(), markupResult.getMessage()));
-            }
-
+            markupResultDao.findByJobIdAndMediaIndex(jobId, mediaIndex)
+                    .ifPresent(mr -> mediaOutputObject.setMarkupResult(
+                            new JsonMarkupOutputObject(
+                                    mr.getId(),
+                                    mr.getMarkupUri(),
+                                    mr.getMarkupStatus().name(),
+                                    mr.getMessage())));
 
             Set<Integer> tasksToSuppress = getTasksToSuppress(media, job);
             Set<Integer> tasksToMerge = aggregateJobPropertiesUtil.getTasksToMerge(media, job);

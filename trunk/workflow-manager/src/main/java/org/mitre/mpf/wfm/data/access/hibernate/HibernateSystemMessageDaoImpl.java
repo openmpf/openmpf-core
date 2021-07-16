@@ -40,7 +40,7 @@ public class HibernateSystemMessageDaoImpl extends AbstractHibernateDao<SystemMe
     public static final String REF = "hibernateSystemMessageDaoImpl";
 
     public HibernateSystemMessageDaoImpl() {
-        this.setClass(SystemMessage.class);
+        super(SystemMessage.class);
     }
 
     public List<SystemMessage> findByType(final String type) {
