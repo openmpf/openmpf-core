@@ -28,10 +28,13 @@
 package org.mitre.mpf.wfm.data.entities.persistent;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSet;
 import org.apache.commons.lang3.StringUtils;
 import org.mitre.mpf.interop.JsonIssueDetails;
 import org.mitre.mpf.wfm.enums.BatchJobStatusType;
@@ -46,6 +49,14 @@ public class BatchJobImpl implements BatchJob {
     @Override
     public long getId() { return _id; }
 
+
+    private final HashMap<Long, MediaImpl> _derivative_media = new HashMap<Long, MediaImpl>();
+
+    @Override
+    public MediaImpl getDerivativeMedia(long mediaId) { return _derivative_media.get(mediaId); }
+
+    @Override
+    public void addDerivativeMedia(long mediaId, MediaImpl media) { _derivative_media.put(mediaId, media); }
 
     private BatchJobStatusType _status = BatchJobStatusType.INITIALIZED;
     @Override
@@ -81,10 +92,18 @@ public class BatchJobImpl implements BatchJob {
 
     private final ImmutableSortedMap<Long, MediaImpl> _media;
     @Override
-    public ImmutableCollection<MediaImpl> getMedia() { return _media.values(); }
+    public ImmutableCollection<MediaImpl> getMedia() {
+        return ImmutableSet.<MediaImpl>builder()
+                    .addAll(_media.values())
+                    .addAll(_derivative_media.values())
+                    .build();
+    }
     @Override
     public MediaImpl getMedia(long mediaId) {
-        return _media.get(mediaId);
+        if (_media.containsKey(mediaId)){
+            return _media.get(mediaId);
+        }
+        return _derivative_media.get(mediaId);
     }
 
 

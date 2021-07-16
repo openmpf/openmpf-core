@@ -157,6 +157,7 @@ public class JobRequestServiceImpl implements JobRequestService {
 
         List<Media> media = originalJob.getMedia()
                 .stream()
+                .filter(m -> !("TRUE".equals(m.getMediaSpecificProperties().get("IS_DERIVATIVE_MEDIA"))))
                 .map(m -> _inProgressJobs.initMedia(m.getUri(), m.getMediaSpecificProperties(), m.getProvidedMetadata()))
                 .collect(ImmutableList.toImmutableList());
 

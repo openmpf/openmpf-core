@@ -279,7 +279,7 @@ public class InProgressBatchJobsService {
     private static final String LOCAL_FILE_NOT_READABLE = "File is not readable";
 
 
-    public synchronized Media initMedia(String uriStr, Map<String, String> mediaSpecificProperties,
+    public synchronized MediaImpl initMedia(String uriStr, Map<String, String> mediaSpecificProperties,
                                         Map<String, String> providedMetadataProperties) {
         long mediaId = IdGenerator.next();
         LOG.info("Initializing media from {} with id {}", uriStr, mediaId);

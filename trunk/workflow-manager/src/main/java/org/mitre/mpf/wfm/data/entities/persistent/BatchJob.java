@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.Collection;
 
 // Suppress because it's better than having to explicitly use BatchJobImpl during deserialization.
 @SuppressWarnings("ClassReferencesSubclass")
@@ -58,6 +59,10 @@ public interface BatchJob {
     public ImmutableCollection<? extends Media> getMedia();
 
     public Media getMedia(long mediaId);
+
+    public MediaImpl getDerivativeMedia(long mediaId);
+
+    public void addDerivativeMedia(long mediaId, MediaImpl media);
 
     // The key of the top level map is the algorithm name. The sub-map is the overridden properties for that algorithm.
     public ImmutableMap<String, ImmutableMap<String, String>> getOverriddenAlgorithmProperties();

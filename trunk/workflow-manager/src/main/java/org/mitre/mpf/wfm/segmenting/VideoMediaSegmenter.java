@@ -41,6 +41,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import org.mitre.mpf.wfm.enums.MpfHeaders;
+
 @Component(VideoMediaSegmenter.REF)
 public class VideoMediaSegmenter implements MediaSegmenter {
     private static final Logger log = LoggerFactory.getLogger(VideoMediaSegmenter.class);
@@ -86,8 +88,9 @@ public class VideoMediaSegmenter implements MediaSegmenter {
                     .setStartFrame(segment.getStartInclusive())
                     .setStopFrame(segment.getEndInclusive())
                     .build();
-
-            messages.add(createProtobufMessage(media, context, videoRequest));
+            Message message = createProtobufMessage(media, context, videoRequest);
+            message.setHeader(MpfHeaders.MEDIA_TYPE, media.getType().toString());
+            messages.add(message);
         }
         return messages;
     }
@@ -104,6 +107,7 @@ public class VideoMediaSegmenter implements MediaSegmenter {
                 .build();
 
         Message message = new DefaultMessage();
+        message.setHeader(MpfHeaders.MEDIA_TYPE, media.getType().toString());
         message.setBody(detectionRequest);
         return message;
     }
@@ -120,7 +124,9 @@ public class VideoMediaSegmenter implements MediaSegmenter {
             }
 
             VideoRequest videoRequest = createFeedForwardVideoRequest(track, topConfidenceCount);
-            messages.add(createProtobufMessage(media, context, videoRequest));
+            Message message = createProtobufMessage(media, context, videoRequest);
+            message.setHeader(MpfHeaders.MEDIA_TYPE, media.getType().toString());
+            messages.add(message);
         }
 
         return messages;

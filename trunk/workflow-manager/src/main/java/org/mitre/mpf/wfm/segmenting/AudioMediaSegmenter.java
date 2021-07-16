@@ -44,6 +44,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.mitre.mpf.wfm.enums.MpfHeaders;
+
 @Component(AudioMediaSegmenter.REF)
 public class AudioMediaSegmenter implements MediaSegmenter {
     private static final Logger log = LoggerFactory.getLogger(AudioMediaSegmenter.class);
@@ -75,6 +77,7 @@ public class AudioMediaSegmenter implements MediaSegmenter {
 
         Message message = new DefaultMessage();
         message.setBody(request);
+        message.setHeader(MpfHeaders.MEDIA_TYPE, media.getType().toString());
         return message;
     }
 
@@ -99,7 +102,9 @@ public class AudioMediaSegmenter implements MediaSegmenter {
                         .setValue(entry.getValue());
             }
 
-            messages.add(createProtobufMessage(media, context, audioRequest.build()));
+            Message message = createProtobufMessage(media, context, audioRequest.build());
+            message.setHeader(MpfHeaders.MEDIA_TYPE, media.getType().toString());
+            messages.add(message);
         }
         return messages;
     }

@@ -41,6 +41,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.mitre.mpf.wfm.enums.MpfHeaders;
+
 @Component(ImageMediaSegmenter.REF)
 public class ImageMediaSegmenter implements MediaSegmenter {
 	private static final Logger log = LoggerFactory.getLogger(ImageMediaSegmenter.class);
@@ -74,6 +76,7 @@ public class ImageMediaSegmenter implements MediaSegmenter {
 
 		Message message = new DefaultMessage();
 		message.setBody(detectionRequest);
+		message.setHeader(MpfHeaders.MEDIA_TYPE, media.getType().toString());
 		return message;
 	}
 
@@ -85,8 +88,9 @@ public class ImageMediaSegmenter implements MediaSegmenter {
 			ImageRequest imageRequest = ImageRequest.newBuilder()
 					.setFeedForwardLocation(imageLocation)
 					.build();
-
-			messages.add(createProtobufMessage(media, context, imageRequest));
+			Message message = createProtobufMessage(media, context, imageRequest);
+			message.setHeader(MpfHeaders.MEDIA_TYPE, media.getType().toString());
+			messages.add(message);
 		}
 		return messages;
 	}

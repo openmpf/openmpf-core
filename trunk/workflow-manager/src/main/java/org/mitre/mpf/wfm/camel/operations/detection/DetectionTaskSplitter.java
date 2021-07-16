@@ -80,11 +80,8 @@ public class DetectionTaskSplitter {
     @Qualifier(DefaultMediaSegmenter.REF)
     private MediaSegmenter defaultMediaSegmenter;
 
-
-
     public List<Message> performSplit(BatchJob job, Task task) {
         List<Message> messages = new ArrayList<>();
-
         // Is this the first detection task in the pipeline?
         boolean isFirstDetectionTask = isFirstDetectionTask(job);
 
@@ -105,8 +102,7 @@ public class DetectionTaskSplitter {
                 SortedSet<Track> previousTracks;
                 if (isFirstDetectionTask) {
                     previousTracks = Collections.emptySortedSet();
-                }
-                else {
+                } else {
                     previousTracks = inProgressBatchJobs.getTracks(
                             job.getId(), media.getId(), job.getCurrentTaskIndex() - 1, 0);
                 }
@@ -170,10 +166,9 @@ public class DetectionTaskSplitter {
                                         action.getAlgorithm()));
                         message.setHeader(MpfHeaders.JMS_REPLY_TO,
                                 StringUtils.replace(MpfEndpoints.COMPLETED_DETECTIONS, "jms:", ""));
-                        message.setHeader(MpfHeaders.MEDIA_TYPE, media.getType().toString());
                     }
                     messages.addAll(detectionRequestMessages);
-                    log.debug("[Job {}|{}|{}] Created {} work units for Media #{}.",
+                    log.debug("[Job {}|{}|{}] Created {} work units for Media #{} and associated new derivatives.",
                             job.getId(),
                             job.getCurrentTaskIndex(),
                             actionIndex,
@@ -184,7 +179,6 @@ public class DetectionTaskSplitter {
                 inProgressBatchJobs.addError(job.getId(), media.getId(), IssueCodes.OTHER, e.getMessage());
             }
         }
-
         return messages;
     }
 
