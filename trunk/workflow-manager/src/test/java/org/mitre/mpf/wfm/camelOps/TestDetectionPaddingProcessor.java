@@ -28,12 +28,25 @@ package org.mitre.mpf.wfm.camelOps;
 
 import org.junit.Test;
 import org.mitre.mpf.wfm.camel.operations.detection.padding.DetectionPaddingProcessor;
+import org.mitre.mpf.wfm.data.InProgressBatchJobsService;
+import org.mitre.mpf.wfm.data.entities.persistent.BatchJob;
+import org.mitre.mpf.wfm.data.entities.persistent.Media;
 import org.mitre.mpf.wfm.data.entities.transients.Detection;
+import org.mitre.mpf.wfm.data.entities.transients.Track;
+import org.mitre.mpf.wfm.enums.IssueCodes;
+import org.mitre.mpf.wfm.enums.MediaType;
+import org.mitre.mpf.wfm.util.AggregateJobPropertiesUtil;
+import org.mitre.mpf.wfm.util.JsonUtils;
+import org.mitre.mpf.wfm.util.ObjectMapperFactory;
+import org.mockito.ArgumentCaptor;
 
-import java.util.Collections;
-import java.util.Map;
+import java.util.*;
 
+import static org.apache.commons.collections4.CollectionUtils.isEqualCollection;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.when;
 
 public class TestDetectionPaddingProcessor {
 
@@ -95,7 +108,7 @@ public class TestDetectionPaddingProcessor {
             Detection input = createDetection(300, 100, 400, 100, "90");
             Detection actual = DetectionPaddingProcessor.padDetection(
                     "50%", "0", 500, 500, input);
-            Detection expected= createDetection(300, 300, 301, 100, "90");
+            Detection expected = createDetection(300, 300, 301, 100, "90");
             assertEquals(expected, actual);
         }
     }
@@ -204,7 +217,6 @@ public class TestDetectionPaddingProcessor {
         }
     }
 
-
     private static Detection createDetection(int x, int y, int width, int height, String rotation) {
 
         Map<String, String> detectionProperties = rotation == null
@@ -212,7 +224,7 @@ public class TestDetectionPaddingProcessor {
                 : Collections.singletonMap("ROTATION", rotation);
 
         return new Detection(x, y, width, height, 1, 0, 0,
-                             detectionProperties);
+                detectionProperties);
     }
 
 
@@ -242,5 +254,248 @@ public class TestDetectionPaddingProcessor {
         Detection newDetection = DetectionPaddingProcessor.padDetection(xPadding, yPadding, frameWidth, frameHeight,
                 detection);
         assertEquals(expectedDetection, newDetection);
+    }
+
+
+    @Test
+    public void testRemoveZeroSizeDetectionsNoZeroDetections() {
+        SortedSet<Detection> detections = new TreeSet<>();
+        Detection detection1 = new Detection(50, 60, 20, 40, 1, 1, 1, Collections.emptyMap());
+        Detection detection2 = new Detection(50, 60, 20, 40, 1, 2, 2, Collections.emptyMap());
+        Detection detection3 = new Detection(50, 60, 20, 40, 1, 3, 3, Collections.emptyMap());
+        detections.add(detection1);
+        detections.add(detection2);
+        detections.add(detection3);
+
+        Track track1 = new Track(1, 2, 1, 1, 1, 3,
+                1, 3, "FACE", 1, detections, Collections.emptyMap());
+
+        SortedSet<Track> tracks = new TreeSet<>();
+        tracks.add(track1);
+
+        Collection<Track> filteredTracks = runRemoveIllFormedDetections(tracks, 200, 400, false);
+
+        assertEquals(1, filteredTracks.size());
+        Track filteredTrack = filteredTracks.iterator().next();
+        SortedSet<Detection> filteredDetections = filteredTrack.getDetections();
+        assertEquals(3, filteredDetections.size());
+        assertEquals(1, filteredTrack.getStartOffsetFrameInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetFrameInclusive());
+        assertEquals(1, filteredTrack.getStartOffsetTimeInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetTimeInclusive());
+    }
+
+    @Test
+    public void testRemoveZeroSizeDetectionsOneZeroDetection() {
+        SortedSet<Detection> detections = new TreeSet<>();
+        Detection detection1 = new Detection(50, 60, 20, 40, 1, 1, 1, Collections.emptyMap());
+        Detection detection2 = new Detection(50, 60, 0, 0, 1, 2, 2, Collections.emptyMap());
+        Detection detection3 = new Detection(50, 60, 20, 40, 1, 3, 3, Collections.emptyMap());
+        detections.add(detection1);
+        detections.add(detection2);
+        detections.add(detection3);
+
+        Track track1 = new Track(1, 2, 1, 1, 1, 3,
+                1, 3, "FACE", 1, detections, Collections.emptyMap());
+
+        SortedSet<Track> tracks = new TreeSet<>();
+        tracks.add(track1);
+
+        Collection<Track> filteredTracks = runRemoveIllFormedDetections(tracks, 200, 400, true);
+        assertEquals(1, filteredTracks.size());
+        Track filteredTrack = filteredTracks.iterator().next();
+        SortedSet<Detection> filteredDetections = filteredTrack.getDetections();
+        assertEquals(2, filteredDetections.size());
+        assertEquals(1, filteredTrack.getStartOffsetFrameInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetFrameInclusive());
+        assertEquals(1, filteredTrack.getStartOffsetTimeInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetTimeInclusive());
+    }
+
+    @Test
+    public void testRemoveOutsideFrameDetectionsOneDetection() {
+        SortedSet<Detection> detections = new TreeSet<>();
+        Detection detection1 = new Detection(-25, 60, 20, 40, 1, 1, 1, Collections.emptyMap());
+        Detection detection2 = new Detection(50, 60, 20, 40, 1, 2, 2, Collections.emptyMap());
+        Detection detection3 = new Detection(50, 60, 20, 40, 1, 3, 3, Collections.emptyMap());
+        detections.add(detection1);
+        detections.add(detection2);
+        detections.add(detection3);
+
+        Track track1 = new Track(1, 2, 1, 1, 1, 3,
+                1, 3, "FACE", 1, detections, Collections.emptyMap());
+
+        SortedSet<Track> tracks = new TreeSet<>();
+        tracks.add(track1);
+
+        Collection<Track> filteredTracks = runRemoveIllFormedDetections(tracks, 200, 400, true);
+        assertEquals(1, filteredTracks.size());
+        Track filteredTrack = filteredTracks.iterator().next();
+        SortedSet<Detection> filteredDetections = filteredTrack.getDetections();
+        assertEquals(2, filteredDetections.size());
+        assertEquals(2, filteredTrack.getStartOffsetFrameInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetFrameInclusive());
+        assertEquals(2, filteredTrack.getStartOffsetTimeInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetTimeInclusive());
+    }
+
+    @Test
+    public void testDontRemoveDetectionPartiallyInFrame() {
+        SortedSet<Detection> detections = new TreeSet<>();
+        Detection detection1 = new Detection(-10, 60, 20, 40, 1, 1, 1, Collections.emptyMap());
+        Detection detection2 = new Detection(50, 60, 20, 40, 1, 2, 2, Collections.emptyMap());
+        Detection detection3 = new Detection(50, 60, 20, 40, 1, 3, 3, Collections.emptyMap());
+        detections.add(detection1);
+        detections.add(detection2);
+        detections.add(detection3);
+
+        Track track1 = new Track(1, 2, 1, 1, 1, 3,
+                1, 3, "FACE", 1, detections, Collections.emptyMap());
+
+        SortedSet<Track> tracks = new TreeSet<>();
+        tracks.add(track1);
+
+        Collection<Track> filteredTracks = runRemoveIllFormedDetections(tracks, 200, 400, false);
+        assertEquals(1, filteredTracks.size());
+        Track filteredTrack = filteredTracks.iterator().next();
+        SortedSet<Detection> filteredDetections = filteredTrack.getDetections();
+        assertEquals(3, filteredDetections.size());
+        assertEquals(1, filteredTrack.getStartOffsetFrameInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetFrameInclusive());
+        assertEquals(1, filteredTrack.getStartOffsetTimeInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetTimeInclusive());
+    }
+
+    @Test
+    public void testRemoveIllFormedDetectionsOneOfEach() {
+        SortedSet<Detection> detections = new TreeSet<>();
+        Detection detection1 = new Detection(-25, 60, 20, 40, 1, 1, 1, Collections.emptyMap());
+        Detection detection2 = new Detection(50, 60, 0, 0, 1, 2, 2, Collections.emptyMap());
+        Detection detection3 = new Detection(50, 60, 20, 40, 1, 3, 3, Collections.emptyMap());
+        detections.add(detection1);
+        detections.add(detection2);
+        detections.add(detection3);
+
+        Track track1 = new Track(1, 2, 1, 1, 1, 3,
+                1, 3, "FACE", 1, detections, Collections.emptyMap());
+
+        SortedSet<Track> tracks = new TreeSet<>();
+        tracks.add(track1);
+
+        Collection<Track> filteredTracks = runRemoveIllFormedDetections(tracks, 200, 400, true);
+        assertEquals(1, filteredTracks.size());
+        Track filteredTrack = filteredTracks.iterator().next();
+        SortedSet<Detection> filteredDetections = filteredTrack.getDetections();
+        assertEquals(1, filteredDetections.size());
+        assertEquals(3, filteredTrack.getStartOffsetFrameInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetFrameInclusive());
+        assertEquals(3, filteredTrack.getStartOffsetTimeInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetTimeInclusive());
+    }
+
+    @Test
+    public void testDontRemoveDetectionsFromExemptTypes() {
+        SortedSet<Detection> detections = new TreeSet<>();
+        Detection detection1 = new Detection(-25, 60, 20, 40, 1, 1, 1, Collections.emptyMap());
+        Detection detection2 = new Detection(50, 60, 0, 0, 1, 2, 2, Collections.emptyMap());
+        Detection detection3 = new Detection(50, 60, 20, 40, 1, 3, 3, Collections.emptyMap());
+        detections.add(detection1);
+        detections.add(detection2);
+        detections.add(detection3);
+
+        Track track1 = new Track(1, 2, 1, 1, 1, 3,
+                1, 3, "SPEECH", 1, detections, Collections.emptyMap());
+
+        SortedSet<Track> tracks = new TreeSet<>();
+        tracks.add(track1);
+
+        Collection<Track> filteredTracks = runRemoveIllFormedDetections(tracks, 200, 400, true);
+        assertEquals(1, filteredTracks.size());
+        Track filteredTrack = filteredTracks.iterator().next();
+        SortedSet<Detection> filteredDetections = filteredTrack.getDetections();
+        assertEquals(1, filteredDetections.size());
+        assertEquals(3, filteredTrack.getStartOffsetFrameInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetFrameInclusive());
+        assertEquals(3, filteredTrack.getStartOffsetTimeInclusive());
+        assertEquals(3, filteredTrack.getEndOffsetTimeInclusive());
+    }
+
+
+    @Test
+    public void testRemoveZeroSizeDetectionsSingleDetectionTrack() {
+        SortedSet<Detection> detections = new TreeSet<>();
+        Detection detection1 = new Detection(50, 60, 0, 0, 1, 1, 1, Collections.emptyMap());
+        detections.add(detection1);
+
+        Track track1 = new Track(1, 2, 1, 1, 1, 1,
+                1, 1, "FACE", 1, detections, Collections.emptyMap());
+
+        SortedSet<Track> tracks = new TreeSet<>();
+        tracks.add(track1);
+
+        Collection<Track> filteredTracks = runRemoveIllFormedDetections(tracks, 200, 400, true);
+
+        assertTrue(filteredTracks.isEmpty());
+    }
+
+    @Test
+    public void testRemoveZeroSizeDetectionsOneZeroDetectionAtEnd() {
+        SortedSet<Detection> detections = new TreeSet<>();
+        Detection detection1 = new Detection(50, 60, 20, 40, 1, 1, 1, Collections.emptyMap());
+        Detection detection2 = new Detection(50, 60, 20, 40, 1, 2, 2, Collections.emptyMap());
+        Detection detection3 = new Detection(50, 60, 0, 0, 1, 3, 3, Collections.emptyMap());
+        detections.add(detection1);
+        detections.add(detection2);
+        detections.add(detection3);
+
+        Track track1 = new Track(1, 2, 1, 1, 1, 3,
+                1, 3, "FACE", 1, detections, Collections.emptyMap());
+
+        SortedSet<Track> tracks = new TreeSet<>();
+        tracks.add(track1);
+
+        Collection<Track> filteredTracks = runRemoveIllFormedDetections(tracks, 200, 400, true);
+
+        assertEquals(1, filteredTracks.size());
+        Track filteredTrack = filteredTracks.iterator().next();
+        SortedSet<Detection> filteredDetections = filteredTrack.getDetections();
+        assertEquals(2, filteredDetections.size());
+        assertEquals(1, filteredTrack.getStartOffsetFrameInclusive());
+        assertEquals(2, filteredTrack.getEndOffsetFrameInclusive());
+        assertEquals(1, filteredTrack.getStartOffsetTimeInclusive());
+        assertEquals(2, filteredTrack.getEndOffsetTimeInclusive());
+    }
+
+    private Collection<Track> runRemoveIllFormedDetections(SortedSet<Track> tracks, int frameWidth, int frameHeight,
+                                                           boolean checkSetTracks) {
+        JsonUtils _jsonUtils = new JsonUtils(ObjectMapperFactory.customObjectMapper());
+        InProgressBatchJobsService _mockInProgressJobs = mock(InProgressBatchJobsService.class);
+        AggregateJobPropertiesUtil _mockAggregateJobPropertiesUtil = mock(AggregateJobPropertiesUtil.class);
+        DetectionPaddingProcessor _detectionPaddingProcessor = new DetectionPaddingProcessor(
+                _jsonUtils,
+                _mockInProgressJobs,
+                _mockAggregateJobPropertiesUtil);
+        long jobId = 123;
+        long mediaId = 5321;
+
+        ArgumentCaptor<Collection<Track>> captor = ArgumentCaptor.forClass(Collection.class);
+        Collection<Track> new_tracks = _detectionPaddingProcessor.removeIllFormedDetections(jobId, mediaId,
+                0, 0, frameWidth, frameHeight, tracks);
+        if (checkSetTracks) {
+            verify(_mockInProgressJobs, atLeast(1))
+                    .addWarning(eq(jobId), eq(mediaId), eq(IssueCodes.PADDING), anyString());
+            verify(_mockInProgressJobs, atMost(2))
+                    .addWarning(eq(jobId), eq(mediaId), eq(IssueCodes.PADDING), anyString());
+            verify(_mockInProgressJobs)
+                    .setTracks(eq(jobId), eq(mediaId), eq(0), eq(0), captor.capture());
+            assertTrue(isEqualCollection(new_tracks, captor.getValue()));
+        }
+        else {
+            verify(_mockInProgressJobs, times(0))
+                    .addWarning(eq(jobId), eq(mediaId), eq(IssueCodes.PADDING), anyString());
+            verify(_mockInProgressJobs, times(0))
+                    .setTracks(eq(jobId), eq(mediaId), eq(0), eq(0), captor.capture());
+        }
+        return new_tracks;
     }
 }

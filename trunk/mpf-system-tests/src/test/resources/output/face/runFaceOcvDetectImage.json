@@ -56,7 +56,7 @@
               {
                 "id": "afba8b4afeb29c2d0b8453f3c1795920dd06d94c18596390a1067d706cfdb453",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "FACE",
@@ -120,7 +120,7 @@
               {
                 "id": "5e2e782e336b39a54f6bd68ea5ee64cdec2ae651fb53454635cdfac2c1eea7b4",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "FACE",
@@ -184,7 +184,7 @@
               {
                 "id": "1f3d1be6aaafbfdd3b659514bf7f18b971bb078986888d6922c6a776f5d31e7c",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "FACE",

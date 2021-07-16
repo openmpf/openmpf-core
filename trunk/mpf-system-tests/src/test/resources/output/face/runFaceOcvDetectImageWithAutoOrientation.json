@@ -62,7 +62,7 @@
               {
                 "id": "98a104a91f1a82c6a99a791be4e73d3b23d0b87be03cac52e7f36614ee65113d",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "FACE",

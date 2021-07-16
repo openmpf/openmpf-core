@@ -247,7 +247,7 @@ public class DetectionResponseProcessor
                         detectionResponse.getTaskIndex(),
                         detectionResponse.getActionIndex(),
                         0,
-                        1,
+                        0,
                         0,
                         0,
                         imageResponse.getDetectionType(),

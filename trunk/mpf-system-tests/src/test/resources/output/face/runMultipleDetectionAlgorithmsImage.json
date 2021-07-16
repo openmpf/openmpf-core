@@ -78,7 +78,7 @@
               {
                 "id": "1d54a3c5adbac24cedc53d6f3cfd02e575fa7f2550795e681935651211a76d39",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "PERSON",
@@ -142,7 +142,7 @@
               {
                 "id": "7644c3d4334b3393c964b42a9f078891c691ac677164d54265eab2dd4553afb4",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "FACE",
@@ -179,7 +179,7 @@
               {
                 "id": "c1f821dc4529c1da394c4a79320fe39816da2dac8f3850cbeb02c8249051a6fe",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "FACE",
@@ -222,7 +222,7 @@
               {
                 "id": "1e8ef072c679177e681c09095fd0ac0c9a1fc677721be6d0e6ccf38254a32009",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "FACE",
@@ -267,7 +267,7 @@
               {
                 "id": "b20f30ac5e7a095c133f2eff1154387072e91265488fcc24a309d0a436ad51a5",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "PERSON",
@@ -304,7 +304,7 @@
               {
                 "id": "d83ce1dd76ba24ce4e1ad2acb1901846516982b73be8a7b80ad51f5c3866c281",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "PERSON",
@@ -341,7 +341,7 @@
               {
                 "id": "0ebc80df1ee60f204baec56ffb2d3a85fda0310460564a615e13162c48cafb12",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "PERSON",
@@ -378,7 +378,7 @@
               {
                 "id": "55b03da110bcfa8e2a44fa625add5f244296395b4a3a24601af194777c802684",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "PERSON",
@@ -415,7 +415,7 @@
               {
                 "id": "ce521e76ad125397924cac11a910325718f110f4f77817d82808b0b064d2beb7",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "PERSON",
@@ -452,7 +452,7 @@
               {
                 "id": "f05815b00a2f89187f441148b79220a80a8d26fddd49d06330bf62cf28d66562",
                 "startOffsetFrame": 0,
-                "stopOffsetFrame": 1,
+                "stopOffsetFrame": 0,
                 "startOffsetTime": 0,
                 "stopOffsetTime": 0,
                 "type": "PERSON",
